@@ -6,7 +6,7 @@ from src.model import ScaleGan
 import tensorflow as tf
 
 parser = argparse.ArgumentParser(description='')
-parser.add_argument('--phase', dest='phase', default='test', help='phase')
+parser.add_argument('--phase', dest='phase', default='train', help='phase')
 parser.add_argument('--dataname', dest='dataname', default='train.jpg', help='name of the data')
 parser.add_argument('--epoch', dest='epoch', type=int, default=200, help='# of epoch')
 parser.add_argument('--train_size', dest='train_size', type=int, default=500, help='# images used to train')

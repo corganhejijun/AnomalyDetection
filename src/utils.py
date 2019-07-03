@@ -32,23 +32,23 @@ def load_data(data, batch_size, fine_size, load_size, flip=True, is_test=False):
     return list
 
 def load_image(data):
-    min = 16
+    xymin = 16
     ymax = data.shape[0]
     xmax = data.shape[1]
     # crop sample from input image
-    x = np.ceil(np.random.uniform(0, xmax-min))
-    y = np.ceil(np.random.uniform(0, ymax-min))
-    w = np.ceil(np.random.uniform(min, xmax-x))
-    h = np.ceil(np.random.uniform(min, ymax-y))
+    x = int(np.ceil(np.random.uniform(0, xmax-xymin)))
+    y = int(np.ceil(np.random.uniform(0, ymax-xymin)))
+    w = int(np.ceil(np.random.uniform(xymin, xmax-x)))
+    h = int(np.ceil(np.random.uniform(xymin, ymax-y)))
     input_img = data[y:y+h, x:x+w, :]
     img_B = input_img
     img_A = img_B
     # add mask
     minMsk = 4
-    mx = np.ceil(np.random.uniform(0, xmax-minMsk))
-    my = np.ceil(np.random.uniform(0, ymax-minMsk))
-    mw = np.ceil(np.random.uniform(minMsk, min(xmax-x, int(xmax/2))))
-    mh = np.ceil(np.random.uniform(minMsk, min(ymax-y, int(ymax/2))))
+    mx = int(np.ceil(np.random.uniform(0, xmax-minMsk)))
+    my = int(np.ceil(np.random.uniform(0, ymax-minMsk)))
+    mw = int(np.ceil(np.random.uniform(minMsk, min(xmax-x, int(xmax/2)))))
+    mh = int(np.ceil(np.random.uniform(minMsk, min(ymax-y, int(ymax/2)))))
     img_A[my:my+mh, mx:mx+mw, :] = [0,0,0]
 
     return img_A, img_B

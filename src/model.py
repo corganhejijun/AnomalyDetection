@@ -26,21 +26,18 @@ class ScaleGan(object):
             [self.batch_size, self.sample_size, self.sample_size, self.img_dim*2],
             name='input_A_and_B_images')
         sizes = []
-        size = self.sample_size
-        while(size >= 16):
-            sizes.append(size)
-            size = size/2
+        sizes.append(int(self.sample_size / 4))
+        sizes.append(int(self.sample_size / 2))
+        sizes.append(self.sample_size)
         # A is sample, B is ground truth, 
         self.real_A = []
         A = self.input_img[:, :, :, :self.img_dim]
         for size in sizes:
             self.real_A.append(tf.image.resize_images(A, (size, size)))
-        self.real_A.append(A)
         self.real_B = []
         B = self.input_img[:, :, :, self.img_dim:2*self.img_dim]
         for size in sizes:
             self.real_B.append(tf.image.resize_images(B, (size, size)))
-        self.real_B.append(B)
 
         self.fake_B = self.generator(self.real_A[-1])
         self.fake_sample = self.sampler(self.real_A[-1])
@@ -161,8 +158,8 @@ class ScaleGan(object):
         self.saver.save(self.sess, os.path.join(checkpoint_dir, model_name), global_step=step)
 
     def load_random_samples(self):
-        data = np.random.choice(glob('./datasets/{}/val/*.jpg'.format(self.dataname)), self.batch_size)
-        sample = [load_data(sample_file, self.sample_size, self.sample_size + int(self.img_size/8)) for sample_file in data]
+        data = imread(self.dataname)
+        sample = load_data(data, self.batch_size, self.sample_size, self.sample_size+int(self.sample_size/8))
         sample_images = np.array(sample).astype(np.float32)
         return sample_images
         
@@ -213,7 +210,7 @@ class ScaleGan(object):
         for epoch in range(args.epoch):
             batch_idxs = args.train_size // self.batch_size
             for idx in range(0, batch_idxs):
-                batch = load_data(data, self.batch_size, self.sample_size, self.sample_size+int(self.img_size/8))
+                batch = load_data(data, self.batch_size, self.sample_size, self.sample_size+int(self.sample_size/8))
                 batch_images = np.array(batch).astype(np.float32)
                 for i in range(len(d_optim)):
                     _, summary_str = self.sess.run([d_optim[i], self.d_sum], feed_dict={self.input_img: batch_images})
@@ -270,7 +267,7 @@ class ScaleGan(object):
         size = e.shape[1].value
         count = 1
         eList = [e]
-        # from img_size to 1x1
+        # from sample_size to 1x1
         while size > 1:
             fact = 2**count
             if fact > 8:
@@ -285,7 +282,7 @@ class ScaleGan(object):
         d = e
         d_for_out = None
         # from 1x1 to origin_size
-        while size < self.origin_size:
+        while size < self.sample_size / 4:
             size = size*2
             d_for_out = d
             fact = 2**count
@@ -299,7 +296,7 @@ class ScaleGan(object):
             count -= 1
         # from origin_size to img_size
         fakeB = []
-        while size <= self.img_size:
+        while size <= self.sample_size:
             B = deconv2d(tf.nn.relu(d_for_out), [self.batch_size, size, size, self.img_dim],
                             name="g_d" + str(count) + "_out")
             fakeB.append(tf.nn.tanh(B))
@@ -310,7 +307,7 @@ class ScaleGan(object):
             fact = 2**count
             if fact > 8:
                 fact = 8
-            if size < self.img_size:
+            if size < self.sample_size:
                 d = deconv2d(tf.nn.relu(rb), [self.batch_size, size, size, self.conv_dim*fact],
                                 name="g_d" + str(count) + "_deconv")
                 d = batch_norm(d, name="g_bn_d" + str(count) + "_deconv")
@@ -342,7 +339,7 @@ class ScaleGan(object):
             sample_files = sample_files_all[batch_count * max_size : endIdx]
             print("Loading testing images ... from {0} to {1} of total {2}".format(batch_count * max_size, endIdx, len(sample_files_all)))
             batch_count += 1
-            sample = [load_data(sample_file, self.sample_size, self.sample_size+int(self.img_size/8), is_test=True) for sample_file in sample_files]
+            sample = [load_data(sample_file, self.sample_size, self.sample_size+int(self.sample_size/8), is_test=True) for sample_file in sample_files]
             sample_images = np.array(sample).astype(np.float32)
             sample_images = [sample_images[i:i+self.batch_size] for i in range(0, len(sample_images), self.batch_size)]
             sample_images = np.array(sample_images)
