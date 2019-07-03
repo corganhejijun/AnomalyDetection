@@ -10,7 +10,7 @@ from .ops import *
 from .utils import *
 
 class ScaleGan(object):
-    def __init__(self, sess, dataname)
+    def __init__(self, sess, dataname):
         self.dataname = dataname
         self.batch_size = 1
         self.checkpoint_dir = './checkpoint'

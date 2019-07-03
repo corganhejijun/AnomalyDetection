@@ -2,7 +2,7 @@
 import argparse
 import os
 
-from model import ScaleGan
+from src.model import ScaleGan
 import tensorflow as tf
 
 parser = argparse.ArgumentParser(description='')
