@@ -14,11 +14,12 @@ class ScaleGan(object):
         self.dataname = dataname
         self.batch_size = 1
         self.checkpoint_dir = './checkpoint'
-        self.img_dim = 3 # image file color channel
         self.conv_dim = 64
         self.sess = sess
         self.L1_lambda = 100
         self.sample_size = 64
+        self.img_dim = 1 # image file color channel
+        self.imgdata = imread(dataname, True)
         self.build_model()
 
     def build_model(self):
@@ -158,8 +159,7 @@ class ScaleGan(object):
         self.saver.save(self.sess, os.path.join(checkpoint_dir, model_name), global_step=step)
 
     def load_random_samples(self):
-        data = imread(self.dataname)
-        sample = load_data(data, self.batch_size, self.sample_size, self.sample_size+int(self.sample_size/8))
+        sample = load_data(self.imgdata, self.batch_size, self.sample_size, self.sample_size+int(self.sample_size/8))
         sample_images = np.array(sample).astype(np.float32)
         return sample_images
         
@@ -206,11 +206,10 @@ class ScaleGan(object):
         else:
             print(" [!] Load failed...")
             
-        data = imread(self.dataname)
         for epoch in range(args.epoch):
             batch_idxs = args.train_size // self.batch_size
             for idx in range(0, batch_idxs):
-                batch = load_data(data, self.batch_size, self.sample_size, self.sample_size+int(self.sample_size/8))
+                batch = load_data(self.imgdata, self.batch_size, self.sample_size, self.sample_size+int(self.sample_size/8))
                 batch_images = np.array(batch).astype(np.float32)
                 for i in range(len(d_optim)):
                     _, summary_str = self.sess.run([d_optim[i], self.d_sum], feed_dict={self.input_img: batch_images})

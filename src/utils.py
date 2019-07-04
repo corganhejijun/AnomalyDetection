@@ -26,7 +26,7 @@ def load_data(data, batch_size, fine_size, load_size, flip=True, is_test=False):
         img_A = img_A/127.5 - 1.  # color value unify
         img_B = img_B/127.5 - 1.
 
-        img_AB = np.concatenate((img_A, img_B), axis=2)
+        img_AB = np.dstack((img_A, img_B))
         # img_AB shape: (fine_size, fine_size, input_c_dim + output_c_dim)
         list.append(img_AB)
     return list
@@ -40,16 +40,18 @@ def load_image(data):
     y = int(np.ceil(np.random.uniform(0, ymax-xymin)))
     w = int(np.ceil(np.random.uniform(xymin, xmax-x)))
     h = int(np.ceil(np.random.uniform(xymin, ymax-y)))
-    input_img = data[y:y+h, x:x+w, :]
+    input_img = data[y:y+h, x:x+w]
     img_B = input_img
     img_A = img_B
     # add mask
     minMsk = 4
+    ymax = img_B.shape[0]
+    xmax = img_B.shape[1]
     mx = int(np.ceil(np.random.uniform(0, xmax-minMsk)))
     my = int(np.ceil(np.random.uniform(0, ymax-minMsk)))
-    mw = int(np.ceil(np.random.uniform(minMsk, min(xmax-x, int(xmax/2)))))
-    mh = int(np.ceil(np.random.uniform(minMsk, min(ymax-y, int(ymax/2)))))
-    img_A[my:my+mh, mx:mx+mw, :] = [0,0,0]
+    mw = int(np.ceil(np.random.uniform(minMsk, min(xmax-mx, int(xmax/2)))))
+    mh = int(np.ceil(np.random.uniform(minMsk, min(ymax-my, int(ymax/2)))))
+    img_A[my:my+mh, mx:mx+mw] = 0
 
     return img_A, img_B
 
