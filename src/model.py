@@ -231,9 +231,9 @@ class ScaleGan(object):
                         
                 if np.mod(counter, 100) == 1:
                     self.sample_model(args.sample_dir, epoch, idx)
-
-                if np.mod(counter, 500) == 2:
-                    self.save(args.checkpoint_dir, counter)
+            if np.mod(counter, 100) != 1:
+                self.sample_model(args.sample_dir, epoch, batch_idxs)
+            self.save(args.checkpoint_dir, epoch)
 
     def discriminator(self, img, name, reuse=False):
         with tf.variable_scope(name):
