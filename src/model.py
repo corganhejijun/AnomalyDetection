@@ -17,7 +17,7 @@ class ScaleGan(object):
         self.conv_dim = 64
         self.sess = sess
         self.L1_lambda = 100
-        self.sample_size = 64
+        self.sample_size = 128
         self.img_dim = 1 # image file color channel
         self.imgdata = imread(dataname, True)
         self.build_model()
