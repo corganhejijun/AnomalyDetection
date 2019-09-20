@@ -40,9 +40,8 @@ def load_image(data):
     y = int(np.ceil(np.random.uniform(0, ymax-xymin)))
     w = int(np.ceil(np.random.uniform(xymin, xmax-x)))
     h = int(np.ceil(np.random.uniform(xymin, ymax-y)))
-    input_img = data[y:y+h, x:x+w]
-    img_B = input_img
-    img_A = img_B
+    img_B = data[y:y+h, x:x+w].copy()
+    img_A = img_B.copy()
     # add mask
     minMsk = 4
     ymax = img_B.shape[0]
