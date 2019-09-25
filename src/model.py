@@ -17,7 +17,7 @@ class ScaleGan(object):
         self.conv_dim = 64
         self.sess = sess
         self.L1_lambda = 100
-        self.sample_size = 64
+        self.sample_size = 128
         self.img_dim = 1 # image file color channel
         self.imgdata = imread(dataname, True)
         self.build_model()
@@ -327,31 +327,24 @@ class ScaleGan(object):
     def test(self, args):
         init_op = tf.global_variables_initializer()
         self.sess.run(init_op)
-        sample_files_all = glob('./datasets/{}/val_test/*.jpg'.format(self.dataname))
-        
-        max_size = 10000
-        batch_count = 0
-        while len(sample_files_all) > max_size * batch_count:
-            endIdx = max_size * (batch_count + 1)
-            if (len(sample_files_all) < endIdx):
-                endIdx = len(sample_files_all)
-            sample_files = sample_files_all[batch_count * max_size : endIdx]
-            print("Loading testing images ... from {0} to {1} of total {2}".format(batch_count * max_size, endIdx, len(sample_files_all)))
-            batch_count += 1
-            sample = [load_data(sample_file, self.sample_size, self.sample_size+int(self.sample_size/8), is_test=True) for sample_file in sample_files]
-            sample_images = np.array(sample).astype(np.float32)
-            sample_images = [sample_images[i:i+self.batch_size] for i in range(0, len(sample_images), self.batch_size)]
-            sample_images = np.array(sample_images)
 
-            if self.load(self.checkpoint_dir):
-                print(" [*] Load SUCCESS")
-            else:
-                print(" [!] Load failed...")
-            print("file number: {}".format(len(sample_files)))
+        print("Loading testing image {0}.".format(self.dataname))
+        sample = load_testdata(self.imgdata, self.sample_size)
+        sample_images = np.array(sample).astype(np.float32)
+        sample_images = [sample_images[i:i+self.batch_size] for i in range(0, len(sample_images), self.batch_size)]
+        sample_images = np.array(sample_images)
 
-            for i, sample_image in enumerate(sample_images):
-                idx = i
-                fileName = sample_files[idx].split('/')[-1].split('.jpg')[0]
-                print("sampling image {}, {} of total {}".format(fileName, idx + (batch_count - 1) * max_size, len(sample_files_all)))
-                samples = self.sess.run(self.fake_sample, feed_dict={self.input_img: sample_image})
-                save_images(samples, [self.batch_size, 1], './{}/{}.png'.format(args.test_dir, fileName))
+        if self.load(self.checkpoint_dir):
+            print(" [*] Load SUCCESS")
+        else:
+            print(" [!] Load failed...")
+
+        for i, sample_image in enumerate(sample_images):
+            idx = i
+            fileName = self.dataname.split('.jpg')[0] + '_' + str(i)
+            print("sampling image {}".format(fileName))
+            samples = self.sess.run(self.fake_sample, feed_dict={self.input_img: sample_image})
+            for j in range(self.batch_size):
+                img_AB = sample_image[j,:,:,:]
+                img_AB[:fine_size+1,:,:] = samples[j,:,:,:]
+                save_images(img_AB, [1, 1], './{}/{}.png'.format(args.test_dir, fileName + str(j)))

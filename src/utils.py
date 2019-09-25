@@ -17,11 +17,11 @@ get_stddev = lambda x, k_h, k_w: 1/math.sqrt(k_w*k_h*x.get_shape()[-1])
 # -----------------------------
 # new added functions for pix2pix
 
-def load_data(data, batch_size, fine_size, load_size, flip=True, is_test=False):
+def load_data(data, batch_size, fine_size, load_size, flip=True):
     list = []
     for i in range(batch_size):
         img_A, img_B = load_image(data)
-        img_A, img_B = preprocess_A_and_B(img_A, img_B, fine_size, load_size, flip=flip, is_test=is_test)
+        img_A, img_B = preprocess_A_and_B(img_A, img_B, fine_size, load_size, flip=flip, is_test=False)
 
         img_A = img_A/127.5 - 1.  # color value unify
         img_B = img_B/127.5 - 1.
@@ -31,7 +31,32 @@ def load_data(data, batch_size, fine_size, load_size, flip=True, is_test=False):
         list.append(img_AB)
     return list
 
-def load_image(data):
+def load_testdata(data, fine_size):
+    list = []
+    step = int(fine_size / 2)
+    ymax = data.shape[0]
+    xmax = data.shape[1]
+    x = 0
+    y = 0
+    while x < data.shape[1]:
+        while y < data.shape[0]:
+            img = data[y:y+step, x:x+step]
+            img = scipy.misc.imresize(img, [fine_size, fine_size])
+            img = img/127.5 - 1
+            img_A = img
+            img_A = img_A[0:step, 0:step] = -1 
+            list.append(np.dstack((img_A, img)))
+            img_A = img_A[0:step, step+1:] = -1
+            list.append(np.dstack((img_A, img)))
+            img_A = img_A[step+1:, 0:step] = -1
+            list.append(np.dstack((img_A, img)))
+            img_A = img_A[step+1:, step+1:] = -1
+            list.append(np.dstack((img_A, img)))
+            y += step
+        x += step
+    return list
+
+def load_image(data)
     xymin = 16
     ymax = data.shape[0]
     xmax = data.shape[1]
