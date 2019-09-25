@@ -56,7 +56,7 @@ def load_testdata(data, fine_size):
         x += step
     return list
 
-def load_image(data)
+def load_image(data):
     xymin = 16
     ymax = data.shape[0]
     xmax = data.shape[1]

@@ -12,7 +12,7 @@ from .utils import *
 class ScaleGan(object):
     def __init__(self, sess, dataname):
         self.dataname = dataname
-        self.batch_size = 128
+        self.batch_size = 50
         self.checkpoint_dir = './checkpoint'
         self.conv_dim = 64
         self.sess = sess
