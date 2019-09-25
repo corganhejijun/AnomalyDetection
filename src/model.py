@@ -346,5 +346,5 @@ class ScaleGan(object):
             samples = self.sess.run(self.fake_sample, feed_dict={self.input_img: sample_image})
             for j in range(self.batch_size):
                 img_AB = sample_image[j,:,:,:]
-                img_AB[:fine_size+1,:,:] = samples[j,:,:,:]
+                img_AB[:self.sample_size+1,:,:] = samples[j,:,:,:]
                 save_images(img_AB, [1, 1], './{}/{}.png'.format(args.test_dir, fileName + str(j)))
