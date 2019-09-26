@@ -329,7 +329,7 @@ class ScaleGan(object):
         self.sess.run(init_op)
 
         print("Loading testing image {0}.".format(self.dataname))
-        sample, names = load_testdata(self.imgdata, self.sample_size, self.divide)
+        sample, names = load_testdata(self.imgdata, self.sample_size, args.divide)
         sample_images = np.array(sample).astype(np.float32)
         sample_images = [sample_images[i:i+self.batch_size] for i in range(0, len(sample_images), self.batch_size)]
         sample_images = np.array(sample_images)
