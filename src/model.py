@@ -347,5 +347,5 @@ class ScaleGan(object):
             print("sampling image {}".format(fileName))
             samples = self.sess.run(self.fake_sample, feed_dict={self.input_img: sample_image})
             for j in range(self.batch_size):
-                img_AB = np.concatenate(([samples[j,:,:]],[sample_image[j,:,:,1]]))
+                img_AB = np.concatenate(([samples[j,:,:,0]],[sample_image[j,:,:,1]]))
                 save_images(img_AB, [2, 1], './{}/{}.png'.format(args.test_dir, fileName + str(j)))
