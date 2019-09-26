@@ -12,7 +12,7 @@ from .utils import *
 class ScaleGan(object):
     def __init__(self, sess, dataname):
         self.dataname = dataname
-        self.batch_size = 16
+        self.batch_size = 50
         self.checkpoint_dir = './checkpoint'
         self.conv_dim = 64
         self.sess = sess
@@ -342,6 +342,8 @@ class ScaleGan(object):
         for i, sample_image in enumerate(sample_images):
             idx = i
             fileName = self.dataname.split('.jpg')[0] + '_' + str(i)
+            while (sample_image.shape[0] < self.batch_size):
+                np.dstack(sample_image, sample_image[0])
             print("sampling image {}".format(fileName))
             samples = self.sess.run(self.fake_sample, feed_dict={self.input_img: sample_image})
             for j in range(self.batch_size):
