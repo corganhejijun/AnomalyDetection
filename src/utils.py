@@ -34,11 +34,9 @@ def load_data(data, batch_size, fine_size, load_size, flip=True):
 def load_testdata(data, fine_size):
     list = []
     step = int(fine_size / 2)
-    ymax = data.shape[0]
-    xmax = data.shape[1]
     x = 0
-    y = 0
     while x < data.shape[1]:
+        y = 0
         while y < data.shape[0]:
             img = data[y:y+step, x:x+step]
             img = scipy.misc.imresize(img, [fine_size, fine_size])
