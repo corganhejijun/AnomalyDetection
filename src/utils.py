@@ -31,9 +31,10 @@ def load_data(data, batch_size, fine_size, load_size, flip=True):
         list.append(img_AB)
     return list
 
-def load_testdata(data, fine_size):
+def load_testdata(data, fine_size, divide):
     list = []
-    step = int(fine_size / 2)
+    names = []
+    step = int(fine_size / divide)
     x = 0
     while x < data.shape[1]:
         y = 0
@@ -44,18 +45,22 @@ def load_testdata(data, fine_size):
             img_A = img.copy()
             img_A[0:step, 0:step] = -1 
             list.append(np.dstack((img_A, img)))
+            names.append(str(x) + '_' + str(y) + '_1')
             img_A = img.copy()
             img_A[0:step, step+1:] = -1
             list.append(np.dstack((img_A, img)))
+            names.append(str(x) + '_' + str(y) + '_2')
             img_A = img.copy()
             img_A[step+1:, 0:step] = -1
             list.append(np.dstack((img_A, img)))
+            names.append(str(x) + '_' + str(y) + '_3')
             img_A = img.copy()
             img_A[step+1:, step+1:] = -1
             list.append(np.dstack((img_A, img)))
+            names.append(str(x) + '_' + str(y) + '_4')
             y += step
         x += step
-    return list
+    return list, names
 
 def load_image(data):
     xymin = 16

@@ -329,7 +329,7 @@ class ScaleGan(object):
         self.sess.run(init_op)
 
         print("Loading testing image {0}.".format(self.dataname))
-        sample = load_testdata(self.imgdata, self.sample_size)
+        sample, names = load_testdata(self.imgdata, self.sample_size, self.divide)
         sample_images = np.array(sample).astype(np.float32)
         sample_images = [sample_images[i:i+self.batch_size] for i in range(0, len(sample_images), self.batch_size)]
         sample_images = np.array(sample_images)
@@ -341,11 +341,11 @@ class ScaleGan(object):
 
         for i, sample_image in enumerate(sample_images):
             idx = i
-            fileName = self.dataname.split('.jpg')[0] + '_' + str(i)
+            fileName = self.dataname.split('.jpg')[0]
             while (sample_image.shape[0] < self.batch_size):
                 sample_image = np.concatenate((sample_image, [sample_image[0]]))
             print("sampling image {}".format(fileName))
             samples = self.sess.run(self.fake_sample, feed_dict={self.input_img: sample_image})
             for j in range(self.batch_size):
                 img_AB = np.concatenate(([samples[j,:,:,0]],[sample_image[j,:,:,1]]))
-                save_images(img_AB, [2, 1], './{}/{}.png'.format(args.test_dir, fileName + str(j)))
+                save_images(img_AB, [2, 1], './{}/{}.png'.format(args.test_dir, fileName + names[j + self.batch_size*i]))
