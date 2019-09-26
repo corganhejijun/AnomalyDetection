@@ -43,16 +43,16 @@ def load_testdata(data, fine_size):
             img = data[y:y+step, x:x+step]
             img = scipy.misc.imresize(img, [fine_size, fine_size])
             img = img/127.5 - 1
-            img_A = img
+            img_A = img.copy()
             img_A[0:step, 0:step] = -1 
             list.append(np.dstack((img_A, img)))
-            img_A = img
+            img_A = img.copy()
             img_A[0:step, step+1:] = -1
             list.append(np.dstack((img_A, img)))
-            img_A = img
+            img_A = img.copy()
             img_A[step+1:, 0:step] = -1
             list.append(np.dstack((img_A, img)))
-            img_A = img
+            img_A = img.copy()
             img_A[step+1:, step+1:] = -1
             list.append(np.dstack((img_A, img)))
             y += step
