@@ -32,28 +32,28 @@ def load_data(data, batch_size, fine_size, load_size, flip=True):
     return list
 
 def load_testdata(data, fine_size, divide):
-    list = []
+    imglist = []
     names = []
     step = int(fine_size / divide)
     x = 0
     while x < data.shape[1]:
         y = 0
         while y < data.shape[0]:
-            img = data[y:y+step, x:x+step]
+            img = data[y:y+fine_size, x:x+fine_size]
             img = scipy.misc.imresize(img, [fine_size, fine_size])
             img = img/127.5 - 1
             for i in range(divide):
                 img_A = img.copy()
                 img_A[step*i:step*(i+1), 0:step*(i+1)] = -1 
-                list.append(np.dstack((img_A, img)))
+                imglist.append(np.dstack((img_A, img)))
                 names.append(str(x) + '_' + str(y) + '_' + str(i) + '_1')
                 img_A = img.copy()
                 img_A[step*i:step*(i+1), step*(i+1):] = -1
-                list.append(np.dstack((img_A, img)))
+                imglist.append(np.dstack((img_A, img)))
                 names.append(str(x) + '_' + str(y) + '_' + str(i) + '_2')
-            y += step
-        x += step
-    return list, names
+            y += fine_size
+        x += fine_size
+    return imglist, names
 
 def load_image(data):
     xymin = 16
