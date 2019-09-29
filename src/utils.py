@@ -43,14 +43,11 @@ def load_testdata(data, fine_size, divide):
             img = scipy.misc.imresize(img, [fine_size, fine_size])
             img = img/127.5 - 1
             for i in range(divide):
-                img_A = img.copy()
-                img_A[step*i:step*(i+1), 0:step*(i+1)] = -1 
-                imglist.append(np.dstack((img_A, img)))
-                names.append(str(x) + '_' + str(y) + '_' + str(i) + '_1')
-                img_A = img.copy()
-                img_A[step*i:step*(i+1), step*(i+1):] = -1
-                imglist.append(np.dstack((img_A, img)))
-                names.append(str(x) + '_' + str(y) + '_' + str(i) + '_2')
+                for j in range(divide):
+                    img_A = img.copy()
+                    img_A[step*i:step*(i+1), step*j:step*(j+1)] = -1 
+                    imglist.append(np.dstack((img_A, img)))
+                    names.append(str(x) + '_' + str(y) + '_' + str(i) + '_' + str(j))
             y += fine_size
         x += fine_size
     return imglist, names
