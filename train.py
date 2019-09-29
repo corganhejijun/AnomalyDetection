@@ -15,7 +15,7 @@ parser.add_argument('--beta1', dest='beta1', type=float, default=0.5, help='mome
 parser.add_argument('--checkpoint_dir', dest='checkpoint_dir', default='./checkpoint', help='models are saved here')
 parser.add_argument('--sample_dir', dest='sample_dir', default='./sample', help='sample are saved here')
 parser.add_argument('--test_dir', dest='test_dir', default='./test', help='test sample are saved here')
-parser.add_argument('--divide', dest='divide', type=int, default='2', help='test sample are saved here')
+parser.add_argument('--divide', dest='divide', type=int, default='4', help='test sample are saved here')
 
 args = parser.parse_args()
 

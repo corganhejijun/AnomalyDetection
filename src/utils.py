@@ -42,22 +42,15 @@ def load_testdata(data, fine_size, divide):
             img = data[y:y+step, x:x+step]
             img = scipy.misc.imresize(img, [fine_size, fine_size])
             img = img/127.5 - 1
-            img_A = img.copy()
-            img_A[0:step, 0:step] = -1 
-            list.append(np.dstack((img_A, img)))
-            names.append(str(x) + '_' + str(y) + '_1')
-            img_A = img.copy()
-            img_A[0:step, step+1:] = -1
-            list.append(np.dstack((img_A, img)))
-            names.append(str(x) + '_' + str(y) + '_2')
-            img_A = img.copy()
-            img_A[step+1:, 0:step] = -1
-            list.append(np.dstack((img_A, img)))
-            names.append(str(x) + '_' + str(y) + '_3')
-            img_A = img.copy()
-            img_A[step+1:, step+1:] = -1
-            list.append(np.dstack((img_A, img)))
-            names.append(str(x) + '_' + str(y) + '_4')
+            for i in range(divide):
+                img_A = img.copy()
+                img_A[step*i:step*(i+1), 0:step*(i+1)] = -1 
+                list.append(np.dstack((img_A, img)))
+                names.append(str(x) + '_' + str(y) + '_' + str(i) + '_1')
+                img_A = img.copy()
+                img_A[step*i:step*(i+1), step*(i+1):] = -1
+                list.append(np.dstack((img_A, img)))
+                names.append(str(x) + '_' + str(y) + '_' + str(i) + '_2')
             y += step
         x += step
     return list, names
