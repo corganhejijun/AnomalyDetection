@@ -351,4 +351,4 @@ class ScaleGan(object):
                 if names[j + self.batch_size*i] == '0':
                     continue
                 img_AB = np.concatenate(([samples[j,:,:,0]],[sample_image[j,:,:,1]]))
-                save_images(img_AB, [2, 1], './{}/{}.png'.format(args.test_dir, fileName + names[j + self.batch_size*i]))
+                save_images(img_AB, [2, 1], './{}/{}.png'.format(args.test_dir, fileName + '_' + names[j + self.batch_size*i]))
