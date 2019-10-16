@@ -47,7 +47,7 @@ def load_testdata(data, fine_size, divide):
                     img_A = img.copy()
                     img_A[step*i:step*(i+1), step*j:step*(j+1)] = -1 
                     imglist.append(np.dstack((img_A, img)))
-                    names.append(str(x) + '_' + str(y) + '_' + str(i*step) + '_' + str(j*step) + '_' + str(step))
+                    names.append(str(x) + '_' + str(y) + '_' + str(j*step) + '_' + str(i*step) + '_' + str(step))
             y += fine_size
         x += fine_size
     return imglist, names

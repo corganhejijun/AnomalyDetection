@@ -8,7 +8,7 @@ import tensorflow as tf
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('--phase', dest='phase', default='train', help='phase')
 parser.add_argument('--dataname', dest='dataname', default='train.jpg', help='name of the data')
-parser.add_argument('--epoch', dest='epoch', type=int, default=200, help='# of epoch')
+parser.add_argument('--epoch', dest='epoch', type=int, default=2000, help='# of epoch')
 parser.add_argument('--train_size', dest='train_size', type=int, default=500, help='# images used to train')
 parser.add_argument('--lr', dest='lr', type=float, default=0.0002, help='initial learning rate for adam')
 parser.add_argument('--beta1', dest='beta1', type=float, default=0.5, help='momentum term of adam')
