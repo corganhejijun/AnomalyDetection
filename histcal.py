@@ -4,6 +4,7 @@ import cv2
 import skimage
 from shutil import copyfile
 
+USE_STEP = True
 test_file = 'train'
 test_path = 'test'
 ext = '.png'
@@ -12,8 +13,9 @@ out_file = 'hist_result.csv'
 SAVE_FILE_COUNT = 30
 save_dir = 'save_folder'
 os.mkdir(save_dir)
-HIST_COUNT_COUNT = 10
+HIST_COUNT_COUNT = 5
 origin_file = 'train.jpg'
+fine_size = 128
 
 outFile = open(out_file, 'w')
 outFile.write('filename,Correlation,Chi-Square,Intersection,Bhattacharyya,HELLINGER,SSIM,PSNR\n')
@@ -43,12 +45,10 @@ def saveFirstAndLast(l, name):
 
 def saveHistCount(l, name):
   countList = []
-  step = 0
   for index, item in enumerate(l):
     value = item[0]
     file = item[1]
     posList = file.split('_')
-    step = int(posList[5].split('.')[0])
     pos = posList[1] + '_' + posList[2]
     found = -1
     for j, c in enumerate(countList):
@@ -66,12 +66,12 @@ def saveHistCount(l, name):
     tail = countList[-i-1][1].split('_')
     x = int(head[0])
     y = int(head[1])
-    cv2.rectangle(img, (x, y), (x+step, y+step), (0, 0, 255), 3)
-    cv2.putText(img, str(i), (x, y-6), cv2.FONT_HERSHEY_SIMPLEX, 3, (0,0,255), 4)
+    cv2.rectangle(img, (x, y), (x+fine_size, y+fine_size), (0, 0, 255), 3)
+    cv2.putText(img, str(i), (x, y+fine_size), cv2.FONT_HERSHEY_SIMPLEX, 3, (0,0,255), 4)
     x = int(tail[0])
     y = int(tail[1])
-    cv2.rectangle(img, (x, y), (x+step, y+step), (255, 0, 0), 3)
-    cv2.putText(img, str(i), (x, y-6), cv2.FONT_HERSHEY_SIMPLEX, 3, (0,0,255), 4)
+    cv2.rectangle(img, (x, y), (x+fine_size, y+fine_size), (255, 0, 0), 3)
+    cv2.putText(img, str(i), (x, y+fine_size), cv2.FONT_HERSHEY_SIMPLEX, 3, (0,0,255), 4)
   cv2.imwrite(name+'.png', img)
 
 fileList = os.listdir(test_path)
@@ -80,15 +80,17 @@ for index, file in enumerate(fileList):
     continue
   print("processing " + file + " " + str(index) + ' of total ' + str(len(fileList)))
   nameValue = file.split('.')[0].split('_')
-  step = int(nameValue[5])
   x = int(nameValue[3])
   y = int(nameValue[4])
   img = cv2.imread(os.path.join(test_path, file), cv2.IMREAD_GRAYSCALE)
   height = img.shape[1]
-  origin = img[y+height:y+step+height, x:x+step]
-  imgOut = img[y:y+step, x:x+step]
-  # origin = img[height:, :]
-  # imgOut = img[:height,:]
+  if USE_STEP:
+    step = int(nameValue[5])
+    origin = img[y+height:y+step+height, x:x+step]
+    imgOut = img[y:y+step, x:x+step]
+  else:
+    origin = img[height:, :]
+    imgOut = img[:height,:]
   originHist = cv2.calcHist([origin], [0], None, [hist_size], [0.0, 255.0])
   imgHist = cv2.calcHist([imgOut], [0], None, [hist_size], [0.0, 255.0])
   dist1 = cv2.compareHist(originHist, imgHist, cv2.HISTCMP_CORREL)
