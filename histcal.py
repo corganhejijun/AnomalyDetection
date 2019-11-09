@@ -52,6 +52,10 @@ def saveFirstAndLast(l, name):
 def calFID(img1, img2, sess):
   img1 = cv2.resize(img1, (160,160))
   img2 = cv2.resize(img2, (160,160))
+  imga = np.zeros((img1.shape[0], img1.shape[1], 3))
+  imga[:, : ,0] = imga[:, :, 1] = imga[:, :, 2] = img1
+  imgb = np.zeros((img1.shape[0], img1.shape[1], 3))
+  imgb[:, : ,0] = imgb[:, :, 1] = imgb[:, :, 2] = img2
   images = np.stack([img1, img2])
 
   images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
