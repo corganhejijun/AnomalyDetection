@@ -96,7 +96,7 @@ def saveHistCount(l, name):
     x = int(tail[0])
     y = int(tail[1])
     cv2.rectangle(img, (x, y), (x+fine_size, y+fine_size), (255, 0, 0), 3)
-    cv2.putText(img, "{}:{:.5f}".format(i, countList[i][2]), (x, y+int(fine_size/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
+    cv2.putText(img, "{}:{:.5f}".format(i, countList[-i-1][2]), (x, y+int(fine_size/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
   cv2.imwrite(name+'.png', img)
 
 fileList = os.listdir(test_path)
