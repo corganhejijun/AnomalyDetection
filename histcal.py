@@ -24,9 +24,6 @@ model_path = "./models/20180402-114759"
 outFile = open(out_file, 'w')
 outFile.write('filename,Correlation,Chi-Square,Intersection,Bhattacharyya,HELLINGER,SSIM,PSNR,fid\n')
 
-sess = tf.Session()
-facenet.load_model(model_path)
-
 hist1List = []
 hist2List = []
 hist3List = []
@@ -98,43 +95,46 @@ def saveHistCount(l, name):
 
 fileList = os.listdir(test_path)
 
-for index, file in enumerate(fileList):
-  if not file.endswith(ext):
-    continue
-  print("processing " + file + " " + str(index) + ' of total ' + str(len(fileList)))
-  nameValue = file.split('.')[0].split('_')
-  x = int(nameValue[3])
-  y = int(nameValue[4])
-  img = cv2.imread(os.path.join(test_path, file), cv2.IMREAD_GRAYSCALE)
-  height = img.shape[1]
-  if USE_STEP:
-    step = int(nameValue[5])
-    origin = img[y+height:y+step+height, x:x+step]
-    imgOut = img[y:y+step, x:x+step]
-  else:
-    origin = img[height:, :]
-    imgOut = img[:height,:]
-  originHist = cv2.calcHist([origin], [0], None, [hist_size], [0.0, 255.0])
-  imgHist = cv2.calcHist([imgOut], [0], None, [hist_size], [0.0, 255.0])
-  dist1 = cv2.compareHist(originHist, imgHist, cv2.HISTCMP_CORREL)
-  dist2 = cv2.compareHist(originHist, imgHist, cv2.HISTCMP_CHISQR)
-  dist3 = cv2.compareHist(originHist, imgHist, cv2.HISTCMP_INTERSECT)
-  dist4 = cv2.compareHist(originHist, imgHist, cv2.HISTCMP_BHATTACHARYYA)
-  dist5 = cv2.compareHist(originHist, imgHist, cv2.HISTCMP_HELLINGER)
-  psnr = skimage.measure.compare_psnr(origin, imgOut)
-  ssim = skimage.measure.compare_ssim(origin, imgOut)
-  fid = calFID(origin, imgOut, sess)
-  outFile.write(file + ',' + str(dist1) + ',' + str(dist2) + ',' + str(dist3) + ',' + str(dist4) + ',' + str(dist5) 
-                  + ',' + str(ssim) + ',' + str(psnr) + ',' + str(fid) + '\n')
-  
-  hist1List.append([dist1, file])
-  hist2List.append([dist2, file])
-  hist3List.append([dist3, file])
-  hist4List.append([dist4, file])
-  hist5List.append([dist5, file])
-  psnrList.append([psnr, file])
-  ssimList.append([ssim, file])
-  fidList.append([fid, file])
+with tf.Graph().as_default():
+  sess = tf.Session()
+  facenet.load_model(model_path)
+  for index, file in enumerate(fileList):
+    if not file.endswith(ext):
+      continue
+    print("processing " + file + " " + str(index) + ' of total ' + str(len(fileList)))
+    nameValue = file.split('.')[0].split('_')
+    x = int(nameValue[3])
+    y = int(nameValue[4])
+    img = cv2.imread(os.path.join(test_path, file), cv2.IMREAD_GRAYSCALE)
+    height = img.shape[1]
+    if USE_STEP:
+      step = int(nameValue[5])
+      origin = img[y+height:y+step+height, x:x+step]
+      imgOut = img[y:y+step, x:x+step]
+    else:
+      origin = img[height:, :]
+      imgOut = img[:height,:]
+    originHist = cv2.calcHist([origin], [0], None, [hist_size], [0.0, 255.0])
+    imgHist = cv2.calcHist([imgOut], [0], None, [hist_size], [0.0, 255.0])
+    dist1 = cv2.compareHist(originHist, imgHist, cv2.HISTCMP_CORREL)
+    dist2 = cv2.compareHist(originHist, imgHist, cv2.HISTCMP_CHISQR)
+    dist3 = cv2.compareHist(originHist, imgHist, cv2.HISTCMP_INTERSECT)
+    dist4 = cv2.compareHist(originHist, imgHist, cv2.HISTCMP_BHATTACHARYYA)
+    dist5 = cv2.compareHist(originHist, imgHist, cv2.HISTCMP_HELLINGER)
+    psnr = skimage.measure.compare_psnr(origin, imgOut)
+    ssim = skimage.measure.compare_ssim(origin, imgOut)
+    fid = calFID(origin, imgOut, sess)
+    outFile.write(file + ',' + str(dist1) + ',' + str(dist2) + ',' + str(dist3) + ',' + str(dist4) + ',' + str(dist5) 
+                    + ',' + str(ssim) + ',' + str(psnr) + ',' + str(fid) + '\n')
+    
+    hist1List.append([dist1, file])
+    hist2List.append([dist2, file])
+    hist3List.append([dist3, file])
+    hist4List.append([dist4, file])
+    hist5List.append([dist5, file])
+    psnrList.append([psnr, file])
+    ssimList.append([ssim, file])
+    fidList.append([fid, file])
 
 print("saveing corr_hist")
 saveFirstAndLast(hist1List, 'corr_hist')
