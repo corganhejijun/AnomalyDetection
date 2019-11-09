@@ -56,7 +56,7 @@ def calFID(img1, img2, sess):
   imga[:, : ,0] = imga[:, :, 1] = imga[:, :, 2] = img1
   imgb = np.zeros((img1.shape[0], img1.shape[1], 3))
   imgb[:, : ,0] = imgb[:, :, 1] = imgb[:, :, 2] = img2
-  images = np.stack([img1, img2])
+  images = np.stack([imga, imgb])
 
   images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
   embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
