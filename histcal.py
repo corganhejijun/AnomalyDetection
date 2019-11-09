@@ -33,7 +33,7 @@ psnrList = []
 ssimList = []
 fidList = []
 
-tf.Graph().as_default():
+tf.Graph().as_default()
 sess = tf.Session()
 facenet.load_model(model_path)
 
