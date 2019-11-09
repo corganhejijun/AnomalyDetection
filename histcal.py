@@ -3,6 +3,9 @@ import os
 import cv2
 import skimage
 from shutil import copyfile
+import tensorflow as tf
+import numpy as np
+import facenet
 
 USE_STEP = True
 test_file = 'train'
@@ -16,9 +19,10 @@ os.mkdir(save_dir)
 HIST_COUNT_COUNT = 5
 origin_file = 'train.jpg'
 fine_size = 128
+model_path = "./models/20180402-114759"
 
 outFile = open(out_file, 'w')
-outFile.write('filename,Correlation,Chi-Square,Intersection,Bhattacharyya,HELLINGER,SSIM,PSNR\n')
+outFile.write('filename,Correlation,Chi-Square,Intersection,Bhattacharyya,HELLINGER,SSIM,PSNR,fid\n')
 
 hist1List = []
 hist2List = []
@@ -27,6 +31,11 @@ hist4List = []
 hist5List = []
 psnrList = []
 ssimList = []
+fidList = []
+
+tf.Graph().as_default():
+sess = tf.Session()
+facenet.load_model(model_path)
 
 def sortList(item):
   return item[0]
@@ -42,6 +51,18 @@ def saveFirstAndLast(l, name):
   saveList(l[:SAVE_FILE_COUNT], os.path.join(save_dir, name + '_top'))
   os.mkdir(os.path.join(save_dir, name + '_last'))
   saveList(l[-SAVE_FILE_COUNT:], os.path.join(save_dir, name + '_last'))
+
+def calFID(img1, img2):
+  images = np.stack([img1, img2])
+
+  images_placeholder = tf.get_default_graph().get_tensor_by_name("input:0")
+  embeddings = tf.get_default_graph().get_tensor_by_name("embeddings:0")
+  phase_train_placeholder = tf.get_default_graph().get_tensor_by_name("phase_train:0")
+
+  feed_dict = { images_placeholder: images, phase_train_placeholder:False }
+  emb = sess.run(embeddings, feed_dict=feed_dict)
+  dist = np.sqrt(np.sum(np.square(np.subtract(emb[0,:], emb[1,:]))))
+  return dist
 
 def saveHistCount(l, name):
   countList = []
@@ -101,8 +122,9 @@ for index, file in enumerate(fileList):
   dist5 = cv2.compareHist(originHist, imgHist, cv2.HISTCMP_HELLINGER)
   psnr = skimage.measure.compare_psnr(origin, imgOut)
   ssim = skimage.measure.compare_ssim(origin, imgOut)
+  fid = calFID(origin, imgOut)
   outFile.write(file + ',' + str(dist1) + ',' + str(dist2) + ',' + str(dist3) + ',' + str(dist4) + ',' + str(dist5) 
-                  + ',' + str(ssim) + ',' + str(psnr) + '\n')
+                  + ',' + str(ssim) + ',' + str(psnr) + ',' + str(fid) + '\n')
   
   hist1List.append([dist1, file])
   hist2List.append([dist2, file])
@@ -111,6 +133,7 @@ for index, file in enumerate(fileList):
   hist5List.append([dist5, file])
   psnrList.append([psnr, file])
   ssimList.append([ssim, file])
+  fidList.append([fid, file])
 
 print("saveing corr_hist")
 saveFirstAndLast(hist1List, 'corr_hist')
@@ -122,10 +145,12 @@ print("saveing bhatt_hist")
 saveFirstAndLast(hist4List, 'bhatt_hist')
 print("saveing hell_hist")
 saveFirstAndLast(hist5List, 'hell_hist')
-print("saveing psnr_hist")
-saveFirstAndLast(psnrList, 'psnr_hist')
-print("saveing ssim_hist")
-saveFirstAndLast(ssimList, 'ssim_hist')
+print("saveing psnr")
+saveFirstAndLast(psnrList, 'psnr')
+print("saveing ssim")
+saveFirstAndLast(ssimList, 'ssim')
+print("saveing fid")
+saveFirstAndLast(fidList, 'fid')
 
 print("saveing corr_hist count list")
 saveHistCount(hist1List, 'corr_hist')
@@ -137,7 +162,9 @@ print("saveing bhatt_hist count list")
 saveHistCount(hist4List, 'bhatt_hist')
 print("saveing hell_hist count list")
 saveHistCount(hist5List, 'hell_hist')
-print("saveing psnr_hist count list")
-saveHistCount(psnrList, 'psnr_hist')
-print("saveing ssim_hist count list")
-saveHistCount(ssimList, 'ssim_hist')
+print("saveing psnr count list")
+saveHistCount(psnrList, 'psnr')
+print("saveing ssim count list")
+saveHistCount(ssimList, 'ssim')
+print("saveing fid count list")
+saveHistCount(fidList, 'fid')
