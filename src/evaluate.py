@@ -79,7 +79,7 @@ class Evaluator:
         cv2.putText(img, "{}:{:.5f}".format(i, countList[-i-1][2]), (x, y+int(self.fine_size/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
     cv2.imwrite(self.name + '.png', img)
 
-  def saveHistCount():
+  def saveHistCount(self):
     print("saveing " + self.name + " count list")
     countList = sortHistByArea(self.myList)
     saveHistCountImage(countList)
