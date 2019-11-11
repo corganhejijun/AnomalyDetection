@@ -60,7 +60,7 @@ class Evaluator:
 
   def saveHistCountImage(self, countList):
     img = cv2.imread(self.origin_file, cv2.IMREAD_COLOR)
-    for i in range(HIST_COUNT_COUNT):
+    for i in range(self.HIST_COUNT_COUNT):
       head = countList[i][1].split('_')
       tail = countList[-i-1][1].split('_')
       x = int(head[0])
