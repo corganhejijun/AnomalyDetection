@@ -4,7 +4,7 @@ import cv2
 from shutil import copyfile
 
 class Evaluator:
-  def __init__(myList, name, test_path):
+  def __init__(self, myList, name, test_path):
     self.USE_AVERAGE = True
     self.HIST_COUNT_COUNT = 5
     self.fine_size = 128
