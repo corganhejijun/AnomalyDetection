@@ -3,8 +3,8 @@ import os
 import cv2
 from shutil import copyfile
 
-def Evaluator(myList, name, test_path):
-  __init__():
+class Evaluator:
+  __init__(myList, name, test_path):
     self.USE_AVERAGE = True
     self.HIST_COUNT_COUNT = 5
     self.fine_size = 128
