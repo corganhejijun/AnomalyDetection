@@ -13,7 +13,7 @@ class Evaluator:
     self.myList = myList
     self.name = name
     self.test_path = test_path
-    os.mkdir(save_dir)
+    os.mkdir(self.save_dir)
     self.origin_file = 'train.jpg'
 
   def sortList(self, item):
