@@ -14,6 +14,9 @@ ext = '.png'
 hist_size = 128
 model_path = "./models/20180402-114759"
 
+save_dir = 'save_folder'
+os.mkdir(save_dir)
+
 out_file = 'hist_result.csv'
 outFile = open(out_file, 'w')
 outFile.write('filename,Correlation,Chi-Square,Intersection,Bhattacharyya,HELLINGER,SSIM,PSNR,fid\n')
@@ -88,14 +91,14 @@ with tf.Graph().as_default():
       ssimList.append([ssim, file])
       fidList.append([fid, file])
 
-corrEva = Evaluator(hist1List, 'corr_hist', test_path)
-chiEva = Evaluator(hist1List, 'chi_hist', test_path)
-interEva = Evaluator(hist3List, 'inter_hist', test_path)
-bhattEva = Evaluator(hist4List, 'bhatt_hist', test_path)
-hellEva = Evaluator(hist5List, 'hell_hist', test_path)
-psnrEva = Evaluator(psnrList, 'psnr', test_path)
-ssimEva = Evaluator(ssimList, 'ssim', test_path)
-fidEva = Evaluator(fidList, 'fid', test_path)
+corrEva = Evaluator(hist1List, 'corr_hist', test_path, save_dir)
+chiEva = Evaluator(hist1List, 'chi_hist', test_path, save_dir)
+interEva = Evaluator(hist3List, 'inter_hist', test_path, save_dir)
+bhattEva = Evaluator(hist4List, 'bhatt_hist', test_path, save_dir)
+hellEva = Evaluator(hist5List, 'hell_hist', test_path, save_dir)
+psnrEva = Evaluator(psnrList, 'psnr', test_path, save_dir)
+ssimEva = Evaluator(ssimList, 'ssim', test_path, save_dir)
+fidEva = Evaluator(fidList, 'fid', test_path, save_dir)
 
 corrEva.saveFirstAndLast()
 chiEva.saveFirstAndLast()

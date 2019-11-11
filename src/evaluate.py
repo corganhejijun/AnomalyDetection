@@ -4,16 +4,15 @@ import cv2
 from shutil import copyfile
 
 class Evaluator:
-  def __init__(self, myList, name, test_path):
+  def __init__(self, myList, name, test_path, save_dir):
     self.USE_AVERAGE = True
     self.HIST_COUNT_COUNT = 5
     self.fine_size = 128
     self.SAVE_FILE_COUNT = 30
-    self.save_dir = 'save_folder'
+    self.save_dir = save_dir
     self.myList = myList
     self.name = name
     self.test_path = test_path
-    os.mkdir(self.save_dir)
     self.origin_file = 'train.jpg'
 
   def sortList(self, item):
