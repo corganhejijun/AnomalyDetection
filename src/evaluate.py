@@ -81,5 +81,5 @@ class Evaluator:
 
   def saveHistCount(self):
     print("saveing " + self.name + " count list")
-    countList = sortHistByArea(self.myList)
-    saveHistCountImage(countList)
+    countList = self.sortHistByArea(self.myList)
+    self.saveHistCountImage(countList)
