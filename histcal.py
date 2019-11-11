@@ -2,25 +2,19 @@
 import os
 import cv2
 import skimage
-from shutil import copyfile
 import tensorflow as tf
 import numpy as np
 import facenet
 
+from src.evaluate import Evaluator
+
 USE_STEP = True
-test_file = 'train'
 test_path = 'test'
 ext = '.png'
 hist_size = 128
-out_file = 'hist_result.csv'
-SAVE_FILE_COUNT = 30
-save_dir = 'save_folder'
-os.mkdir(save_dir)
-HIST_COUNT_COUNT = 5
-origin_file = 'train.jpg'
-fine_size = 128
 model_path = "./models/20180402-114759"
 
+out_file = 'hist_result.csv'
 outFile = open(out_file, 'w')
 outFile.write('filename,Correlation,Chi-Square,Intersection,Bhattacharyya,HELLINGER,SSIM,PSNR,fid\n')
 
@@ -32,22 +26,6 @@ hist5List = []
 psnrList = []
 ssimList = []
 fidList = []
-
-
-def sortList(item):
-  return item[0]
-
-def saveList(l, dest):
-  for item in l:
-    filename = item[1]
-    copyfile(os.path.join(test_path, filename), os.path.join(dest, filename))
-
-def saveFirstAndLast(l, name):
-  l.sort(key=sortList)
-  os.mkdir(os.path.join(save_dir, name + '_top'))
-  saveList(l[:SAVE_FILE_COUNT], os.path.join(save_dir, name + '_top'))
-  os.mkdir(os.path.join(save_dir, name + '_last'))
-  saveList(l[-SAVE_FILE_COUNT:], os.path.join(save_dir, name + '_last'))
 
 def calFID(img1, img2, sess):
   img1 = cv2.resize(img1, (160,160))
@@ -66,43 +44,6 @@ def calFID(img1, img2, sess):
   emb = sess.run(embeddings, feed_dict=feed_dict)
   dist = np.sqrt(np.sum(np.square(np.subtract(emb[0,:], emb[1,:]))))
   return dist
-
-def saveHistCount(l, name):
-  countList = []
-  for index, item in enumerate(l):
-    value = item[0]
-    file = item[1]
-    posList = file.split('_')
-    pos = posList[1] + '_' + posList[2]
-    found = -1
-    for j, c in enumerate(countList):
-      if c[1] == pos:
-        found = j
-        break
-    if found > -1:
-      # countList[found][0] += index
-      # countList[found][2] = (value + countList[found][2]) / 2
-      countList[found][2] += index
-      countList[found][0] = (value + countList[found][0]) / 2
-    else:
-      # countList.append([index, pos, value])
-      countList.append([value, pos, index])
-  countList.sort(key=sortList)
-  img = cv2.imread(origin_file, cv2.IMREAD_COLOR)
-  for i in range(HIST_COUNT_COUNT):
-    head = countList[i][1].split('_')
-    tail = countList[-i-1][1].split('_')
-    x = int(head[0])
-    y = int(head[1])
-    cv2.rectangle(img, (x, y), (x+fine_size, y+fine_size), (0, 0, 255), 3)
-    # cv2.putText(img, "{}:{:.5f}".format(i, countList[i][2]), (x, y+int(fine_size/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
-    cv2.putText(img, "{}:{:.5f}".format(i, countList[i][0]), (x, y+int(fine_size/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
-    x = int(tail[0])
-    y = int(tail[1])
-    cv2.rectangle(img, (x, y), (x+fine_size, y+fine_size), (255, 0, 0), 3)
-    # cv2.putText(img, "{}:{:.5f}".format(i, countList[-i-1][2]), (x, y+int(fine_size/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
-    cv2.putText(img, "{}:{:.5f}".format(i, countList[-i-1][0]), (x, y+int(fine_size/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
-  cv2.imwrite(name+'.png', img)
 
 fileList = os.listdir(test_path)
 
@@ -147,36 +88,29 @@ with tf.Graph().as_default():
       ssimList.append([ssim, file])
       fidList.append([fid, file])
 
-print("saveing corr_hist")
-saveFirstAndLast(hist1List, 'corr_hist')
-print("saveing chi_hist")
-saveFirstAndLast(hist2List, 'chi_hist')
-print("saveing inter_hist")
-saveFirstAndLast(hist3List, 'inter_hist')
-print("saveing bhatt_hist")
-saveFirstAndLast(hist4List, 'bhatt_hist')
-print("saveing hell_hist")
-saveFirstAndLast(hist5List, 'hell_hist')
-print("saveing psnr")
-saveFirstAndLast(psnrList, 'psnr')
-print("saveing ssim")
-saveFirstAndLast(ssimList, 'ssim')
-print("saveing fid")
-saveFirstAndLast(fidList, 'fid')
+corrEva = Evaluator(hist1List, 'corr_hist', test_path)
+chiEva = Evaluator(hist1List, 'chi_hist', test_path)
+interEva = Evaluator(hist3List, 'inter_hist', test_path)
+bhattEva = Evaluator(hist4List, 'bhatt_hist', test_path)
+hellEva = Evaluator(hist5List, 'hell_hist', test_path)
+psnrEva = Evaluator(psnrList, 'psnr', test_path)
+ssimEva = Evaluator(ssimList, 'ssim', test_path)
+fidEva = Evaluator(fidList, 'fid', test_path)
 
-print("saveing corr_hist count list")
-saveHistCount(hist1List, 'corr_hist')
-print("saveing chi_hist count list")
-saveHistCount(hist2List, 'chi_hist')
-print("saveing inter_hist count list")
-saveHistCount(hist3List, 'inter_hist')
-print("saveing bhatt_hist count list")
-saveHistCount(hist4List, 'bhatt_hist')
-print("saveing hell_hist count list")
-saveHistCount(hist5List, 'hell_hist')
-print("saveing psnr count list")
-saveHistCount(psnrList, 'psnr')
-print("saveing ssim count list")
-saveHistCount(ssimList, 'ssim')
-print("saveing fid count list")
-saveHistCount(fidList, 'fid')
+corrEva.saveFirstAndLast()
+chiEva.saveFirstAndLast()
+interEva.saveFirstAndLast()
+bhattEva.saveFirstAndLast()
+hellEva.saveFirstAndLast()
+psnrEva.saveFirstAndLast()
+ssimEva.saveFirstAndLast()
+fidEva.saveFirstAndLast()
+
+corrEva.saveHistCount()
+chiEva.saveHistCount()
+interEva.saveHistCount()
+bhattEva.saveHistCount()
+hellEva.saveHistCount()
+psnrEva.saveHistCount()
+ssimEva.saveHistCount()
+fidEva.saveHistCount()
