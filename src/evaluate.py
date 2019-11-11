@@ -18,8 +18,8 @@ class Evaluator:
   def sortList(self, item):
     return item[0]
 
-  def saveList(self, dest):
-    for item in self.myList:
+  def saveList(self, llist, dest):
+    for item in llist:
       filename = item[1]
       copyfile(os.path.join(self.test_path, filename), os.path.join(dest, filename))
 
@@ -27,9 +27,9 @@ class Evaluator:
     print("saveing " + self.name)
     self.myList.sort(key=self.sortList)
     os.mkdir(os.path.join(self.save_dir, self.name + '_top'))
-    self.saveList(self.myList[:self.SAVE_FILE_COUNT], os.path.join(self.save_dir, self.name + '_top'), self.test_path)
+    self.saveList(self.myList[:self.SAVE_FILE_COUNT], os.path.join(self.save_dir, self.name + '_top'))
     os.mkdir(os.path.join(self.save_dir, self.name + '_last'))
-    self.saveList(self.myList[-self.SAVE_FILE_COUNT:], os.path.join(self.save_dir, self.name + '_last'), self.test_path)
+    self.saveList(self.myList[-self.SAVE_FILE_COUNT:], os.path.join(self.save_dir, self.name + '_last'))
 
   def sortHistByArea(self):
     countList = []
