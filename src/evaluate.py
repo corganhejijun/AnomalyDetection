@@ -14,6 +14,7 @@ class Evaluator:
     self.name = name
     self.test_path = test_path
     self.origin_file = 'train.jpg'
+    self.gt_file = ''
 
   def sortList(self, item):
     return item[0]
@@ -83,3 +84,67 @@ class Evaluator:
     print("saveing " + self.name + " count list")
     countList = self.sortHistByArea()
     self.saveHistCountImage(countList)
+
+  def insideRect(self, pos, rect):
+    x = pos[0]
+    y = pos[1]
+    top = rect[0]
+    bottom = rect[1]
+    left = rect[2]
+    right = rect[3]
+    if x >= left and x <= right and y >= top and y <= bottom:
+      return true
+    return false
+
+  def insideList(self, gtX, gtY, count, head, countList):
+    for i in range(count):
+      x = y = None
+      if head:
+        head = countList[i][1].split('_')
+        x = int(head[0])
+        y = int(head[1])
+      else:
+        tail = countList[-i-1][1].split('_')
+        x = int(tail[0])
+        y = int(tail[1])
+      if self.insideRect([gtX, gtY], [y, y+ self.fine_size, x, x + self.fine_size]):
+        return True
+    return False
+
+  def getROC(self, countList, count, head, gtImg):
+    # explain
+    # https://www.cnblogs.com/dlml/p/4403482.html
+    TP = FN = FP = TN = 0
+    for i in range(gtImg.shape[0]):
+      for j in range(gtImg.shape[1]):
+        if gtImg[i, j] == 1:
+          if self.insideList(j, i, count, head, countList):
+            TP += 1
+          else:
+            FN += 1
+        if gtImg[i, j] == 0:
+          if self.insideList(j, i, count, head, countList):
+            FP += 1
+          else:
+            TN += 1
+    TPR = TP / (TP + FN)
+    FPR = FP / (FP + TN)
+    return [FPR, TPR]
+
+    def writeCurveFile(self, curve):
+      out_file = self.name + '_ROC_curve.csv'
+      outFile = open(out_file, 'w')
+      outFile.write('x, y\n')
+      for i in range(curve.length):
+        outFile.write(curve[i][0] + ', ' + curve[i][1])
+      outFile.close()
+
+    def ROCCurve(self):
+      print("calculating " + self.name + " ROC curve")
+      countList = self.sortHistByArea()
+      gtImg = cv2.imread(self.gt_file, cv2.IMREAD_GRAYSCALE)
+      curve = []
+      for i in range(countList.length):
+        point = self.getROC(countList, i, True, gtImg)
+        curve.append(point)
+      self.writeCurveFile(curve)

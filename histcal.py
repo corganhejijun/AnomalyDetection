@@ -91,6 +91,8 @@ with tf.Graph().as_default():
       ssimList.append([ssim, file])
       fidList.append([fid, file])
 
+outFile.close()
+
 corrEva = Evaluator(hist1List, 'corr_hist', test_path, save_dir)
 chiEva = Evaluator(hist1List, 'chi_hist', test_path, save_dir)
 interEva = Evaluator(hist3List, 'inter_hist', test_path, save_dir)
@@ -117,3 +119,12 @@ hellEva.saveHistCount()
 psnrEva.saveHistCount()
 ssimEva.saveHistCount()
 fidEva.saveHistCount()
+
+corrEva.ROCCurve()
+chiEva.ROCCurve()
+interEva.ROCCurve()
+bhattEva.ROCCurve()
+hellEva.ROCCurve()
+psnrEva.ROCCurve()
+ssimEva.ROCCurve()
+fidEva.ROCCurve()
