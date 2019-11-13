@@ -5,6 +5,7 @@ import skimage
 import tensorflow as tf
 import numpy as np
 import facenet
+import shutil
 
 from src.evaluate import Evaluator
 
@@ -15,6 +16,9 @@ hist_size = 128
 model_path = "./models/20180402-114759"
 
 save_dir = 'save_folder'
+if os.path.isdir(save_dir):
+  print(save_dir + " exists delete it.")
+  shutil.rmtree(save_dir)
 os.mkdir(save_dir)
 
 out_file = 'hist_result.csv'

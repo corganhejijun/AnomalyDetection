@@ -14,7 +14,7 @@ class Evaluator:
     self.name = name
     self.test_path = test_path
     self.origin_file = 'train.jpg'
-    self.gt_file = ''
+    self.gt_file = 'gt.jpg'
 
   def sortList(self, item):
     return item[0]
@@ -93,8 +93,8 @@ class Evaluator:
     left = rect[2]
     right = rect[3]
     if x >= left and x <= right and y >= top and y <= bottom:
-      return true
-    return false
+      return True
+    return False
 
   def insideList(self, gtX, gtY, count, head, countList):
     for i in range(count):
@@ -117,7 +117,7 @@ class Evaluator:
     TP = FN = FP = TN = 0
     for i in range(gtImg.shape[0]):
       for j in range(gtImg.shape[1]):
-        if gtImg[i, j] == 1:
+        if gtImg[i, j] == 255:
           if self.insideList(j, i, count, head, countList):
             TP += 1
           else:
@@ -131,20 +131,20 @@ class Evaluator:
     FPR = FP / (FP + TN)
     return [FPR, TPR]
 
-    def writeCurveFile(self, curve):
-      out_file = self.name + '_ROC_curve.csv'
-      outFile = open(out_file, 'w')
-      outFile.write('x, y\n')
-      for i in range(curve.length):
-        outFile.write(curve[i][0] + ', ' + curve[i][1])
-      outFile.close()
+  def writeCurveFile(self, curve):
+    out_file = self.name + '_ROC_curve.csv'
+    outFile = open(out_file, 'w')
+    outFile.write('x, y\n')
+    for i in range(len(curve)):
+      outFile.write(curve[i][0] + ', ' + curve[i][1])
+    outFile.close()
 
-    def ROCCurve(self):
-      print("calculating " + self.name + " ROC curve")
-      countList = self.sortHistByArea()
-      gtImg = cv2.imread(self.gt_file, cv2.IMREAD_GRAYSCALE)
-      curve = []
-      for i in range(countList.length):
-        point = self.getROC(countList, i, True, gtImg)
-        curve.append(point)
-      self.writeCurveFile(curve)
+  def ROCCurve(self):
+    print("calculating " + self.name + " ROC curve")
+    countList = self.sortHistByArea()
+    gtImg = cv2.imread(self.gt_file, cv2.IMREAD_GRAYSCALE)
+    curve = []
+    for i in range(len(countList)):
+      point = self.getROC(countList, i, True, gtImg)
+      curve.append(point)
+    self.writeCurveFile(curve)
