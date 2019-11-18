@@ -31,30 +31,26 @@ def load_data(data, batch_size, fine_size, load_size, flip=True):
         list.append(img_AB)
     return list
 
-def load_testdata(data, fine_size):
-    list = []
-    step = int(fine_size / 2)
-    ymax = data.shape[0]
-    xmax = data.shape[1]
+def load_testdata(data, fine_size, divide):
+    imglist = []
+    names = []
+    step = int(fine_size / divide)
     x = 0
-    y = 0
     while x < data.shape[1]:
+        y = 0
         while y < data.shape[0]:
-            img = data[y:y+step, x:x+step]
+            img = data[y:y+fine_size, x:x+fine_size]
             img = scipy.misc.imresize(img, [fine_size, fine_size])
             img = img/127.5 - 1
-            img_A = img
-            img_A[0:step, 0:step] = -1 
-            list.append(np.dstack((img_A, img)))
-            img_A[0:step, step+1:] = -1
-            list.append(np.dstack((img_A, img)))
-            img_A[step+1:, 0:step] = -1
-            list.append(np.dstack((img_A, img)))
-            img_A[step+1:, step+1:] = -1
-            list.append(np.dstack((img_A, img)))
-            y += step
-        x += step
-    return list
+            for i in range(divide):
+                for j in range(divide):
+                    img_A = img.copy()
+                    img_A[step*i:step*(i+1), step*j:step*(j+1)] = -1 
+                    imglist.append(np.dstack((img_A, img)))
+                    names.append(str(x) + '_' + str(y) + '_' + str(j*step) + '_' + str(i*step) + '_' + str(step))
+            y += fine_size
+        x += fine_size
+    return imglist, names
 
 def load_image(data):
     xymin = 16

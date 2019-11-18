@@ -3,3 +3,8 @@ checkpoint
 test
 logs
 sample
+*.png
+*.tif
+models
+*.jpg
+*.csv
