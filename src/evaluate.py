@@ -15,6 +15,7 @@ class Evaluator:
     self.test_path = test_path
     self.origin_file = 'train.jpg'
     self.gt_file = 'gt.jpg'
+    self.useHeadCrop = True
 
   def sortList(self, item):
     return item[0]
@@ -96,34 +97,27 @@ class Evaluator:
       return True
     return False
 
-  def insideList(self, gtX, gtY, count, head, countList):
+  def insideList(self, gtX, gtY, count, countList):
     for i in range(count):
-      x = y = None
-      if head:
-        head = countList[i][1].split('_')
-        x = int(head[0])
-        y = int(head[1])
-      else:
-        tail = countList[-i-1][1].split('_')
-        x = int(tail[0])
-        y = int(tail[1])
+      x = countList[i][0]
+      y = countList[i][1]
       if self.insideRect([gtX, gtY], [y, y+ self.fine_size, x, x + self.fine_size]):
         return True
     return False
 
-  def getROC(self, countList, count, head, gtImg):
+  def getROC(self, countList, count, gtImg):
     # explain
     # https://www.cnblogs.com/dlml/p/4403482.html
     TP = FN = FP = TN = 0
     for i in range(gtImg.shape[0]):
       for j in range(gtImg.shape[1]):
         if gtImg[i, j] == 255:
-          if self.insideList(j, i, count, head, countList):
+          if self.insideList(j, i, count, countList):
             TP += 1
           else:
             FN += 1
         if gtImg[i, j] == 0:
-          if self.insideList(j, i, count, head, countList):
+          if self.insideList(j, i, count, countList):
             FP += 1
           else:
             TN += 1
@@ -144,7 +138,15 @@ class Evaluator:
     countList = self.sortHistByArea()
     gtImg = cv2.imread(self.gt_file, cv2.IMREAD_GRAYSCALE)
     curve = []
+    rectList = [];
     for i in range(len(countList)):
-      point = self.getROC(countList, i, True, gtImg)
+      if self.useHeadCrop:
+        rect = countList[i][1].split('_')
+        rectList.append([int(rect[0]), int(rect[1])])
+      else:
+        rect = countList[-i-1].split('_')
+        rectList.append([int(rect[0]), int(rect[1])])
+    for i in range(len(countList)):
+      point = self.getROC(rectList, i, gtImg)
       curve.append(point)
     self.writeCurveFile(curve)
