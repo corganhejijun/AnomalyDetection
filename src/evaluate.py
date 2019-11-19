@@ -103,8 +103,8 @@ class Evaluator:
         rect = countList[-i-1][1].split('_')
       x = int(rect[0])
       y = int(rect[1])
-      TP = np.count_nonzero(gtImg[x:x+self.fine_size, y:y+self.fine_size] == 255)
-      FP = np.count_nonzero(gtImg[x:x+self.fine_size, y:y+self.fine_size] == 0)
+      TP = np.count_nonzero(gtImg[y:y+self.fine_size, x:x+self.fine_size] == 255)
+      FP = np.count_nonzero(gtImg[y:y+self.fine_size, x:x+self.fine_size] == 0)
       rect_TP_FP.append([TP, FP])
     TP_SUM = 0
     FP_SUM = 0
