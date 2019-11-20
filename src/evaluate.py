@@ -5,10 +5,10 @@ from shutil import copyfile
 import numpy as np
 
 class Evaluator:
-  def __init__(self, myList, name, test_path, save_dir):
+  def __init__(self, myList, name, test_path, save_dir, fine_size, useHeadCrop = True):
     self.USE_AVERAGE = True
     self.HIST_COUNT_COUNT = 5
-    self.fine_size = 128
+    self.fine_size = fine_size
     self.SAVE_FILE_COUNT = 30
     self.save_dir = save_dir
     self.myList = myList
@@ -16,7 +16,7 @@ class Evaluator:
     self.test_path = test_path
     self.origin_file = 'train.jpg'
     self.gt_file = 'gt.jpg'
-    self.useHeadCrop = True
+    self.useHeadCrop = useHeadCrop
 
   def sortList(self, item):
     return item[0]
@@ -36,11 +36,14 @@ class Evaluator:
 
   def sortHistByArea(self):
     countList = []
+    img = cv2.imread(self.origin_file, cv2.IMREAD_COLOR)
     for index, item in enumerate(self.myList):
       value = item[0]
       file = item[1]
       posList = file.split('_')
       pos = posList[1] + '_' + posList[2]
+      if int(posList[1]) + self.fine_size > img.shape[1] or int(posList[2]) + self.fine_size > img.shape[0]:
+        continue
       found = -1
       for j, c in enumerate(countList):
         if c[1] == pos:
@@ -64,23 +67,27 @@ class Evaluator:
   def saveHistCountImage(self, countList):
     img = cv2.imread(self.origin_file, cv2.IMREAD_COLOR)
     for i in range(self.HIST_COUNT_COUNT):
-      head = countList[i][1].split('_')
-      tail = countList[-i-1][1].split('_')
-      x = int(head[0])
-      y = int(head[1])
-      cv2.rectangle(img, (x, y), (x+self.fine_size, y+self.fine_size), (0, 0, 255), 3)
-      if self.USE_AVERAGE:
-        cv2.putText(img, "{}:{:.5f}".format(i, countList[i][0]), (x, y+int(self.fine_size/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
+      if self.useHeadCrop:
+        head = countList[i][1].split('_')
+        x = int(head[0])
+        y = int(head[1])
+        cv2.rectangle(img, (x, y), (x+self.fine_size, y+self.fine_size), (0, 0, 255), 3)
+        if self.USE_AVERAGE:
+          cv2.putText(img, "{}:{:.5f}".format(i, countList[i][0]), (x, y+int(self.fine_size/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
+        else:
+          cv2.putText(img, "{}:{:.5f}".format(i, countList[i][2]), (x, y+int(self.fine_size/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
       else:
-        cv2.putText(img, "{}:{:.5f}".format(i, countList[i][2]), (x, y+int(self.fine_size/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
-      x = int(tail[0])
-      y = int(tail[1])
-      cv2.rectangle(img, (x, y), (x+self.fine_size, y+self.fine_size), (255, 0, 0), 3)
-      if self.USE_AVERAGE:
-        cv2.putText(img, "{}:{:.5f}".format(i, countList[-i-1][0]), (x, y+int(self.fine_size/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
-      else:
-        cv2.putText(img, "{}:{:.5f}".format(i, countList[-i-1][2]), (x, y+int(self.fine_size/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
-    cv2.imwrite(self.name + '.png', img)
+        tail = countList[-i-1][1].split('_')
+        x = int(tail[0])
+        y = int(tail[1])
+        cv2.rectangle(img, (x, y), (x+self.fine_size, y+self.fine_size), (255, 0, 0), 3)
+        if self.USE_AVERAGE:
+          cv2.putText(img, "{}:{:.5f}".format(i, countList[-i-1][0]), (x, y+int(self.fine_size/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
+        else:
+          cv2.putText(img, "{}:{:.5f}".format(i, countList[-i-1][2]), (x, y+int(self.fine_size/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255), 2)
+    if not os.path.isdir('png'):
+      os.mkdir('png')
+    cv2.imwrite('png/' + self.name + '.png', img)
 
   def saveHistCount(self):
     print("saveing " + self.name + " count list")
@@ -119,7 +126,9 @@ class Evaluator:
     return curve
 
   def writeCurveFile(self, curve):
-    out_file = self.name + '_ROC_curve.csv'
+    if not os.path.isdir('csv'):
+      os.mkdir('csv')
+    out_file = 'csv/' + self.name + '_ROC_curve.csv'
     outFile = open(out_file, 'w')
     outFile.write('x, y\n')
     for i in range(len(curve)):
