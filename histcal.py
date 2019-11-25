@@ -6,6 +6,7 @@ import tensorflow as tf
 import numpy as np
 import facenet
 import shutil
+from sklearn import metrics as mr
 
 from src.evaluate import Evaluator
 
@@ -22,18 +23,17 @@ if os.path.isdir(save_dir):
   shutil.rmtree(save_dir)
 os.mkdir(save_dir)
 
+models = ["corr_hist", "chi_hist", "inter_hist", "bhatt_hist", 
+          "hell_hist", "psnr", "ssim", "fid", "mututal"]
+
+modelList = []
 out_file = 'hist_result.csv'
 outFile = open(out_file, 'w')
-outFile.write('filename,Correlation,Chi-Square,Intersection,Bhattacharyya,HELLINGER,SSIM,PSNR,fid\n')
-
-hist1List = []
-hist2List = []
-hist3List = []
-hist4List = []
-hist5List = []
-psnrList = []
-ssimList = []
-fidList = []
+title = ""
+for item in models:
+  title += ", " + item
+  modelList.append([])
+outFile.write('filename' + title + '\n')
 
 def calFID(img1, img2, sess):
   img1 = cv2.resize(img1, (160,160))
@@ -76,6 +76,7 @@ with tf.Graph().as_default():
         imgOut = img[:height,:]
       originHist = cv2.calcHist([origin], [0], None, [hist_size], [0.0, 255.0])
       imgHist = cv2.calcHist([imgOut], [0], None, [hist_size], [0.0, 255.0])
+      
       dist1 = cv2.compareHist(originHist, imgHist, cv2.HISTCMP_CORREL)
       dist2 = cv2.compareHist(originHist, imgHist, cv2.HISTCMP_CHISQR)
       dist3 = cv2.compareHist(originHist, imgHist, cv2.HISTCMP_INTERSECT)
@@ -84,52 +85,31 @@ with tf.Graph().as_default():
       psnr = skimage.measure.compare_psnr(origin, imgOut)
       ssim = skimage.measure.compare_ssim(origin, imgOut)
       fid = calFID(origin, imgOut, sess)
+      mutual = mr.mutual_info_score(np.reshape(origin, -1), np.reshape(imgOut, -1))
       outFile.write(file + ',' + str(dist1) + ',' + str(dist2) + ',' + str(dist3) + ',' + str(dist4) + ',' + str(dist5) 
-                      + ',' + str(ssim) + ',' + str(psnr) + ',' + str(fid) + '\n')
+                      + ',' + str(ssim) + ',' + str(psnr) + ',' + str(fid) + ',' + str(mutual) + '\n')
       
-      hist1List.append([dist1, file])
-      hist2List.append([dist2, file])
-      hist3List.append([dist3, file])
-      hist4List.append([dist4, file])
-      hist5List.append([dist5, file])
-      psnrList.append([psnr, file])
-      ssimList.append([ssim, file])
-      fidList.append([fid, file])
+      modelList[0].append([dist1, file])
+      modelList[1].append([dist2, file])
+      modelList[2].append([dist3, file])
+      modelList[3].append([dist4, file])
+      modelList[4].append([dist5, file])
+      modelList[5].append([psnr, file])
+      modelList[6].append([ssim, file])
+      modelList[7].append([fid, file])
+      modelList[8].append([mutual, file])
 
 outFile.close()
 
-corrEva = Evaluator(hist1List, 'corr_hist', test_path, save_dir, fine_size)
-chiEva = Evaluator(hist2List, 'chi_hist', test_path, save_dir, fine_size)
-interEva = Evaluator(hist3List, 'inter_hist', test_path, save_dir, fine_size)
-bhattEva = Evaluator(hist4List, 'bhatt_hist', test_path, save_dir, fine_size)
-hellEva = Evaluator(hist5List, 'hell_hist', test_path, save_dir, fine_size)
-psnrEva = Evaluator(psnrList, 'psnr', test_path, save_dir, fine_size)
-ssimEva = Evaluator(ssimList, 'ssim', test_path, save_dir, fine_size)
-fidEva = Evaluator(fidList, 'fid', test_path, save_dir, fine_size, False)
+evaluatorList = []
+for index in range(len(models)):
+  if models[index] == 'fid':
+    evaluatorList.append(Evaluator(modelList[index], models[index], test_path, save_dir, fine_size, False))
+  else:
+    evaluatorList.append(Evaluator(modelList[index], models[index], test_path, save_dir, fine_size))
 
-corrEva.saveFirstAndLast()
-chiEva.saveFirstAndLast()
-interEva.saveFirstAndLast()
-bhattEva.saveFirstAndLast()
-hellEva.saveFirstAndLast()
-psnrEva.saveFirstAndLast()
-ssimEva.saveFirstAndLast()
-fidEva.saveFirstAndLast()
-
-corrEva.saveHistCount()
-chiEva.saveHistCount()
-interEva.saveHistCount()
-bhattEva.saveHistCount()
-hellEva.saveHistCount()
-psnrEva.saveHistCount()
-ssimEva.saveHistCount()
-fidEva.saveHistCount()
-
-corrEva.ROCCurve()
-chiEva.ROCCurve()
-interEva.ROCCurve()
-bhattEva.ROCCurve()
-hellEva.ROCCurve()
-psnrEva.ROCCurve()
-ssimEva.ROCCurve()
-fidEva.ROCCurve()
+for item in evaluatorList:
+  item.saveFirstAndLast()
+  item.saveHistCount()
+  item.ROCCurve()
+  item.testRocCurve()

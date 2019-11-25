@@ -94,14 +94,29 @@ class Evaluator:
     countList = self.sortHistByArea()
     self.saveHistCountImage(countList)
 
+  def getCurve(self, gtImg, rect_TP_FP):
+    curve = []
+    FN_ALL = np.count_nonzero(gtImg == 255)
+    TN_ALL = np.count_nonzero(gtImg == 0)
+    TP_SUM = 0
+    FP_SUM = 0
+    for item in rect_TP_FP:
+      TP_SUM += item[0]
+      FP_SUM += item[1]
+      FN = FN_ALL - TP_SUM
+      TN = TN_ALL - FP_SUM
+      TPR = TP_SUM / (TP_SUM + FN)
+      FPR = FP_SUM / (FP_SUM + TN)
+      curve.append([FPR, TPR])
+    lastPt = curve[-1]
+    if lastPt[0] < 1 or lastPt[1] < 1:
+      curve.append([1,1])
+    return curve
+
   def getROC(self, countList, gtImg):
     # explain
     # https://www.cnblogs.com/dlml/p/4403482.html
-    FN_ALL = np.count_nonzero(gtImg == 255)
-    TN_ALL = np.count_nonzero(gtImg == 0)
-    curve = []
     rect_TP_FP = []
-    
     for i in range(len(countList)):
       rect = None
       if self.useHeadCrop:
@@ -113,22 +128,12 @@ class Evaluator:
       TP = np.count_nonzero(gtImg[y:y+self.fine_size, x:x+self.fine_size] == 255)
       FP = np.count_nonzero(gtImg[y:y+self.fine_size, x:x+self.fine_size] == 0)
       rect_TP_FP.append([TP, FP])
-    TP_SUM = 0
-    FP_SUM = 0
-    for item in rect_TP_FP:
-      TP_SUM += item[0]
-      FP_SUM += item[1]
-      FN = FN_ALL - TP_SUM
-      TN = TN_ALL - FP_SUM
-      TPR = TP_SUM / (TP_SUM + FN)
-      FPR = FP_SUM / (FP_SUM + TN)
-      curve.append([FPR, TPR])
-    return curve
+    return self.getCurve(gtImg, rect_TP_FP)
 
-  def writeCurveFile(self, curve):
-    if not os.path.isdir('csv'):
-      os.mkdir('csv')
-    out_file = 'csv/' + self.name + '_ROC_curve.csv'
+  def writeCurveFile(self, curve, path):
+    if not os.path.isdir(path):
+      os.mkdir(path)
+    out_file = path + '/' + self.name + '_ROC_curve.csv'
     outFile = open(out_file, 'w')
     outFile.write('x, y\n')
     for i in range(len(curve)):
@@ -140,4 +145,27 @@ class Evaluator:
     countList = self.sortHistByArea()
     gtImg = cv2.imread(self.gt_file, cv2.IMREAD_GRAYSCALE)
     curve = self.getROC(countList, gtImg)
-    self.writeCurveFile(curve)
+    self.writeCurveFile(curve, 'csv')
+
+  def testRocCurve(self):
+    print("calculating " + self.name + " test ROC curve")
+    gtImg = cv2.imread(self.gt_file, cv2.IMREAD_GRAYSCALE)
+    self.myList.sort(key=self.sortList, reverse=False)
+    rect_TP_FP = []
+    for index, item in enumerate(self.myList):
+      value = item[0]
+      file = item[1]
+      posList = file.split('_')
+      x = int(posList[1])
+      y = int(posList[2])
+      x1 = int(posList[3])
+      y1 = int(posList[4])
+      width = int(posList[5].split('.')[0])
+      x += x1
+      y += y1
+      TP = np.count_nonzero(gtImg[y:y+width, x:x+width] == 255)
+      FP = np.count_nonzero(gtImg[y:y+width, x:x+width] == 0)
+      rect_TP_FP.append([TP, FP])
+
+    curve = self.getCurve(gtImg, rect_TP_FP)
+    self.writeCurveFile(curve, 'test_csv')

@@ -52,25 +52,39 @@ def load_testdata(data, fine_size, divide):
         x += fine_size
     return imglist, names
 
+def getRandom():
+    rand = -1
+    while (rand < 0 or rand > 1):
+        rand = np.random.normal(0.5, 0.3)
+    return rand
+
 def load_image(data):
-    xymin = 16
+    xymin = 64
     ymax = data.shape[0]
     xmax = data.shape[1]
     # crop sample from input image
     x = int(np.ceil(np.random.uniform(0, xmax-xymin)))
     y = int(np.ceil(np.random.uniform(0, ymax-xymin)))
-    w = int(np.ceil(np.random.uniform(xymin, xmax-x)))
-    h = int(np.ceil(np.random.uniform(xymin, ymax-y)))
+    w = int(np.ceil(getRandom() * (xmax-x)))
+    while w < xymin:
+        w = int(np.ceil(getRandom() * (xmax-x)))
+    h = int(np.ceil(getRandom() * (ymax-y)))
+    while h < xymin:
+        h = int(np.ceil(getRandom() * (ymax-y)))
     img_B = data[y:y+h, x:x+w].copy()
     img_A = img_B.copy()
     # add mask
-    minMsk = 4
+    minMsk = 16
     ymax = img_B.shape[0]
     xmax = img_B.shape[1]
     mx = int(np.ceil(np.random.uniform(0, xmax-minMsk)))
     my = int(np.ceil(np.random.uniform(0, ymax-minMsk)))
-    mw = int(np.ceil(np.random.uniform(minMsk, min(xmax-mx, int(xmax/2)))))
-    mh = int(np.ceil(np.random.uniform(minMsk, min(ymax-my, int(ymax/2)))))
+    mw = int(np.ceil(getRandom() * min(xmax-mx, int(xmax/2))))
+    while mw < minMsk:
+        mw = int(np.ceil(getRandom() * min(xmax-mx, int(xmax/2))))
+    mh = int(np.ceil(getRandom() * min(ymax-my, int(ymax/2))))
+    while mh < minMsk:
+        mh = int(np.ceil(getRandom() * min(ymax-my, int(ymax/2))))
     img_A[my:my+mh, mx:mx+mw] = 0
 
     return img_A, img_B
