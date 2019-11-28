@@ -147,14 +147,7 @@ class Evaluator:
     curve = self.getROC(countList, gtImg)
     self.writeCurveFile(curve, 'csv')
 
-  def testRocCurve(self):
-    print("calculating " + self.name + " test ROC curve")
-    gtImg = cv2.imread(self.gt_file, cv2.IMREAD_GRAYSCALE)
-    self.myList.sort(key=self.sortList, reverse=False)
-    rect_TP_FP = []
-    for index, item in enumerate(self.myList):
-      value = item[0]
-      file = item[1]
+  def getPos(self, file):
       posList = file.split('_')
       x = int(posList[1])
       y = int(posList[2])
@@ -163,9 +156,32 @@ class Evaluator:
       width = int(posList[5].split('.')[0])
       x += x1
       y += y1
+      return x, y, width
+
+  def testRocCurve(self):
+    print("calculating " + self.name + " test ROC curve")
+    gtImg = cv2.imread(self.gt_file, cv2.IMREAD_GRAYSCALE)
+    self.myList.sort(key=self.sortList, reverse=False)
+    rect_TP_FP = []
+    for item in self.myList:
+      value = item[0]
+      file = item[1]
+      x, y, width = self.getPos(file)
       TP = np.count_nonzero(gtImg[y:y+width, x:x+width] == 255)
       FP = np.count_nonzero(gtImg[y:y+width, x:x+width] == 0)
       rect_TP_FP.append([TP, FP])
 
     curve = self.getCurve(gtImg, rect_TP_FP)
     self.writeCurveFile(curve, 'test_csv')
+
+  def drawRange(self, percent, reverse):
+    print("drawing " + self.name + " range image")
+    img = cv2.imread(self.origin_file)
+    self.myList.sort(key=self.sortList, reverse=reverse)
+    for index in range(int(len(self.myList) * percent)):
+      item = self.myList[index]
+      x, y, width = self.getPos(item[1])
+      cv2.rectangle(img, (x, y), (x+width, y+width), (0, 0, 255), 3)
+    if not os.path.isdir('rangePng'):
+      os.mkdir('rangePng')
+    cv2.imwrite('rangePng/' + self.name + str(percent) + '.png', img)

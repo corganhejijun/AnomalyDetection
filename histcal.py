@@ -108,8 +108,12 @@ for index in range(len(models)):
   else:
     evaluatorList.append(Evaluator(modelList[index], models[index], test_path, save_dir, fine_size))
 
-for item in evaluatorList:
+for index, item in enumerate(evaluatorList):
   item.saveFirstAndLast()
   item.saveHistCount()
   item.ROCCurve()
   item.testRocCurve()
+  if models[index] == "fid":
+    item.drawRange(0.1, True)
+  elif models[index] == "psnr" or models[index] == "ssim":
+    item.drawRange(0.1, False)

@@ -8,6 +8,7 @@ import random
 
 from .ops import *
 from .utils import *
+from .evaluate import Evaluator
 
 class ScaleGan(object):
     def __init__(self, sess, dataname):
@@ -352,3 +353,50 @@ class ScaleGan(object):
                     continue
                 img_AB = np.concatenate(([samples[j,:,:,0]],[sample_image[j,:,:,1]]))
                 save_images(img_AB, [2, 1], './{}/{}.png'.format(args.test_dir, fileName + '_' + names[j + self.batch_size*i]))
+
+    def calDis(self, imgPath):
+        init_op = tf.global_variables_initializer()
+        self.sess.run(init_op)
+        print("Loading testing image {0}.".format(self.dataname))
+        if self.load(self.checkpoint_dir):
+            print(" [*] Load SUCCESS")
+        else:
+            print(" [!] Load failed...")
+            return
+        img = imread(imgPath, True)
+        size = 128
+        loss = []
+        for i in range(len(self.d_loss)):
+            loss.append([])
+        for j in range(img.shape[0]):
+          for k in range(img.shape[1]):
+            x = k * size
+            y = j * size
+        #x = 760
+        #y = 92
+            batch = []
+            errD = ""
+            if x + size > img.shape[1] or y + size > img.shape[0]:
+                continue
+            for i in range(self.batch_size):
+                data = img[y:y+size, x:x+size]
+                data = scipy.misc.imresize(data, [self.sample_size, self.sample_size])
+                data = data/127.5 - 1
+                img_A = data
+                img_B = data.copy()
+                batch.append(np.dstack((img_A, img_B)))
+            batch_images = np.array(batch).astype(np.float32)
+            for i in range(len(self.d_loss)):
+                result = self.d_loss[i].eval({self.input_img: batch_images})
+                loss[i].append([result, 'train_%d_%d_0_0_%d' % (x, y, size)])
+                errD += "{:.4f},".format(result)
+            print("x = %f y = %f d_loss: %s" % (x, y, errD[:-1]))
+        eva1 = Evaluator(loss[0], 'd_loss_1', '', '', 128)
+        eva1.testRocCurve()
+        eva1.drawRange(0.05, False)
+        eva2 = Evaluator(loss[1], 'd_loss_2', '', '', 128)
+        eva2.testRocCurve()
+        eva2.drawRange(0.05, False)
+        eva3 = Evaluator(loss[2], 'd_loss_3', '', '', 128)
+        eva3.testRocCurve()
+        eva3.drawRange(0.05, False)
