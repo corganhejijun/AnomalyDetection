@@ -369,6 +369,8 @@ class ScaleGan(object):
         realLoss = []
         fakeLoss = []
         bothLoss = []
+        errLog = open("cal_error.csv", 'w')
+        errLog.write('x, y, errD1, errD2, errD3, realD1, realD2, realD3, fakeD1, fakeD2, fakeD3, bothD1, bothD2, bothD3\n')
         for i in range(len(self.d_loss)):
             loss.append([])
             realLoss.append([])
@@ -408,6 +410,8 @@ class ScaleGan(object):
                 bothD += "{:.4f},".format(result)
             print("x = %f y = %f d_loss: %s real_loss: %s fake_loss: %s both_loss: %s" 
                     % (x, y, errD, realD, fakeD, bothD))
+            errLog.write(str(x) + ',' + str(y) + ',' + errD + realD + fakeD + bothD[:-1] + '\n')
+        errLog.close()
         evaList = []
         eva = Evaluator(fakeLoss[0], 'd_fake_1', '', '', 128)
         evaList.append(eva)

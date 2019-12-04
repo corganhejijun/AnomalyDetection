@@ -3,10 +3,12 @@ anomaly detection
 
 ## 1. training
 set the normal sample filename into "train.jpg"
+
 python train.py --phase train
 
 ## 2. generate sample for anormaly detection
 set the sample to be detected into "train.jpg"
+
 python cropImg.py
 
 ## 3. generate test sample for detection

@@ -15,7 +15,7 @@ if os.path.exists(trainOut):
   os.remove(trainOut)
 train = cv2.imread(origin_train, cv2.IMREAD_COLOR)
 
-left = 0
+left = 300
 top = 0
 bottom = int(train.shape[0])
 right = int(train.shape[1])
