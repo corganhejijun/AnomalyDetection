@@ -112,8 +112,9 @@ for index, item in enumerate(evaluatorList):
   item.saveFirstAndLast()
   item.saveHistCount()
   item.ROCCurve()
-  item.testRocCurve()
   if models[index] == "fid":
+    item.testRocCurve(True)
     item.drawRange(0.1, True)
   elif models[index] == "psnr" or models[index] == "ssim":
+    item.testRocCurve(False)
     item.drawRange(0.1, False)

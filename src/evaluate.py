@@ -158,10 +158,10 @@ class Evaluator:
       y += y1
       return x, y, width
 
-  def testRocCurve(self):
+  def testRocCurve(self, reverse):
     print("calculating " + self.name + " test ROC curve")
     gtImg = cv2.imread(self.gt_file, cv2.IMREAD_GRAYSCALE)
-    self.myList.sort(key=self.sortList, reverse=False)
+    self.myList.sort(key=self.sortList, reverse=reverse)
     rect_TP_FP = []
     for item in self.myList:
       value = item[0]
@@ -184,4 +184,4 @@ class Evaluator:
       cv2.rectangle(img, (x, y), (x+width, y+width), (0, 0, 255), 3)
     if not os.path.isdir('rangePng'):
       os.mkdir('rangePng')
-    cv2.imwrite('rangePng/' + self.name + str(percent) + '.png', img)
+    cv2.imwrite('rangePng/' + self.name + '_' + str(percent) + '.png', img)

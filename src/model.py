@@ -364,10 +364,16 @@ class ScaleGan(object):
             print(" [!] Load failed...")
             return
         img = imread(imgPath, True)
-        size = 128
+        size = 64
         loss = []
+        realLoss = []
+        fakeLoss = []
+        bothLoss = []
         for i in range(len(self.d_loss)):
             loss.append([])
+            realLoss.append([])
+            fakeLoss.append([])
+            bothLoss.append([])
         for j in range(img.shape[0]):
           for k in range(img.shape[1]):
             x = k * size
@@ -375,7 +381,6 @@ class ScaleGan(object):
         #x = 760
         #y = 92
             batch = []
-            errD = ""
             if x + size > img.shape[1] or y + size > img.shape[0]:
                 continue
             for i in range(self.batch_size):
@@ -386,17 +391,28 @@ class ScaleGan(object):
                 img_B = data.copy()
                 batch.append(np.dstack((img_A, img_B)))
             batch_images = np.array(batch).astype(np.float32)
+            realD = fakeD = bothD = errD = ""
             for i in range(len(self.d_loss)):
+                filename = 'train_%d_%d_0_0_%d' % (x, y, size)
                 result = self.d_loss[i].eval({self.input_img: batch_images})
-                loss[i].append([result, 'train_%d_%d_0_0_%d' % (x, y, size)])
+                loss[i].append([result, filename])
                 errD += "{:.4f},".format(result)
-            print("x = %f y = %f d_loss: %s" % (x, y, errD[:-1]))
-        eva1 = Evaluator(loss[0], 'd_loss_1', '', '', 128)
-        eva1.testRocCurve()
-        eva1.drawRange(0.05, False)
-        eva2 = Evaluator(loss[1], 'd_loss_2', '', '', 128)
-        eva2.testRocCurve()
-        eva2.drawRange(0.05, False)
-        eva3 = Evaluator(loss[2], 'd_loss_3', '', '', 128)
-        eva3.testRocCurve()
-        eva3.drawRange(0.05, False)
+                result = self.d_loss_real[i].eval({self.input_img: batch_images})
+                realLoss[i].append([result, filename])
+                realD += "{:.4f},".format(result)
+                result = self.d_loss_fake[i].eval({self.input_img: batch_images})
+                fakeLoss[i].append([result, filename])
+                fakeD += "{:.4f},".format(result)
+                result = self.d_loss_both[i].eval({self.input_img: batch_images})
+                bothLoss[i].append([result, filename])
+                bothD += "{:.4f},".format(result)
+            print("x = %f y = %f d_loss: %s real_loss: %s fake_loss: %s both_loss: %s" 
+                    % (x, y, errD, realD, fakeD, bothD))
+        evaList = []
+        eva = Evaluator(fakeLoss[0], 'd_fake_1', '', '', 128)
+        evaList.append(eva)
+        eva = Evaluator(bothLoss[0], 'd_both_1', '', '', 128)
+        evaList.append(eva)
+        for eva in evaList:
+            eva.testRocCurve(True)
+            eva.drawRange(0.1, True)
