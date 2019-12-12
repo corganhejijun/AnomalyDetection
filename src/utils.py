@@ -65,24 +65,24 @@ def load_image(data):
     # crop sample from input image
     x = int(np.ceil(np.random.uniform(0, xmax-xymin)))
     y = int(np.ceil(np.random.uniform(0, ymax-xymin)))
-    w = int(np.ceil(getRandom() * (xmax-x)))
+    w = xymin
     while w < xymin:
         w = int(np.ceil(getRandom() * (xmax-x)))
-    h = int(np.ceil(getRandom() * (ymax-y)))
+    h = xymin
     while h < xymin:
         h = int(np.ceil(getRandom() * (ymax-y)))
     img_B = data[y:y+h, x:x+w].copy()
     img_A = img_B.copy()
     # add mask
-    minMsk = 16
+    minMsk = 32
     ymax = img_B.shape[0]
     xmax = img_B.shape[1]
     mx = int(np.ceil(np.random.uniform(0, xmax-minMsk)))
     my = int(np.ceil(np.random.uniform(0, ymax-minMsk)))
-    mw = int(np.ceil(getRandom() * min(xmax-mx, int(xmax/2))))
+    mw = minMsk
     while mw < minMsk:
         mw = int(np.ceil(getRandom() * min(xmax-mx, int(xmax/2))))
-    mh = int(np.ceil(getRandom() * min(ymax-my, int(ymax/2))))
+    mh = minMsk
     while mh < minMsk:
         mh = int(np.ceil(getRandom() * min(ymax-my, int(ymax/2))))
     img_A[my:my+mh, mx:mx+mw] = 0

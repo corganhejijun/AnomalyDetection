@@ -13,12 +13,12 @@ from .evaluate import Evaluator
 class ScaleGan(object):
     def __init__(self, sess, dataname):
         self.dataname = dataname
-        self.batch_size = 50
+        self.batch_size = 64
         self.checkpoint_dir = './checkpoint'
         self.conv_dim = 64
         self.sess = sess
         self.L1_lambda = 100
-        self.sample_size = 128
+        self.sample_size = 64
         self.img_dim = 1 # image file color channel
         self.imgdata = imread(dataname, True)
         self.build_model()
@@ -364,6 +364,8 @@ class ScaleGan(object):
             print(" [!] Load failed...")
             return
         img = imread(imgPath, True)
+        gtImg = imread('normal.jpg', True)
+        gtImg = scipy.misc.imresize(gtImg, [1024, 1024])
         size = 64
         loss = []
         realLoss = []
@@ -389,8 +391,11 @@ class ScaleGan(object):
                 data = img[y:y+size, x:x+size]
                 data = scipy.misc.imresize(data, [self.sample_size, self.sample_size])
                 data = data/127.5 - 1
+                dataB = gtImg[x:x+size, y:y+size]
+                dataB = scipy.misc.imresize(dataB, [self.sample_size, self.sample_size])
+                dataB = dataB/127.5 - 1
                 img_A = data
-                img_B = data.copy()
+                img_B = dataB
                 batch.append(np.dstack((img_A, img_B)))
             batch_images = np.array(batch).astype(np.float32)
             realD = fakeD = bothD = errD = ""
@@ -408,11 +413,13 @@ class ScaleGan(object):
                 result = self.d_loss_both[i].eval({self.input_img: batch_images})
                 bothLoss[i].append([result, filename])
                 bothD += "{:.4f},".format(result)
-            print("x = %f y = %f d_loss: %s real_loss: %s fake_loss: %s both_loss: %s" 
+            print("x = %04d y = %04d d_loss: %s real_loss: %s fake_loss: %s both_loss: %s" 
                     % (x, y, errD, realD, fakeD, bothD))
             errLog.write(str(x) + ',' + str(y) + ',' + errD + realD + fakeD + bothD[:-1] + '\n')
         errLog.close()
         evaList = []
+        eva = Evaluator(realLoss[0], 'd_real_1', '', '', 128)
+        evaList.append(eva)
         eva = Evaluator(fakeLoss[0], 'd_fake_1', '', '', 128)
         evaList.append(eva)
         eva = Evaluator(bothLoss[0], 'd_both_1', '', '', 128)
