@@ -8,16 +8,17 @@ import random
 
 from .ops import *
 from .utils import *
+from .evaluate import Evaluator
 
 class ScaleGan(object):
     def __init__(self, sess, dataname):
         self.dataname = dataname
-        self.batch_size = 50
+        self.batch_size = 64
         self.checkpoint_dir = './checkpoint'
         self.conv_dim = 64
         self.sess = sess
         self.L1_lambda = 100
-        self.sample_size = 128
+        self.sample_size = 64
         self.img_dim = 1 # image file color channel
         self.imgdata = imread(dataname, True)
         self.build_model()
@@ -352,3 +353,77 @@ class ScaleGan(object):
                     continue
                 img_AB = np.concatenate(([samples[j,:,:,0]],[sample_image[j,:,:,1]]))
                 save_images(img_AB, [2, 1], './{}/{}.png'.format(args.test_dir, fileName + '_' + names[j + self.batch_size*i]))
+
+    def calDis(self, imgPath):
+        init_op = tf.global_variables_initializer()
+        self.sess.run(init_op)
+        print("Loading testing image {0}.".format(self.dataname))
+        if self.load(self.checkpoint_dir):
+            print(" [*] Load SUCCESS")
+        else:
+            print(" [!] Load failed...")
+            return
+        img = imread(imgPath, True)
+        gtImg = imread('normal.jpg', True)
+        gtImg = scipy.misc.imresize(gtImg, [1024, 1024])
+        size = 64
+        loss = []
+        realLoss = []
+        fakeLoss = []
+        bothLoss = []
+        errLog = open("cal_error.csv", 'w')
+        errLog.write('x, y, errD1, errD2, errD3, realD1, realD2, realD3, fakeD1, fakeD2, fakeD3, bothD1, bothD2, bothD3\n')
+        for i in range(len(self.d_loss)):
+            loss.append([])
+            realLoss.append([])
+            fakeLoss.append([])
+            bothLoss.append([])
+        for j in range(img.shape[0]):
+          for k in range(img.shape[1]):
+            x = k * size
+            y = j * size
+        #x = 760
+        #y = 92
+            batch = []
+            if x + size > img.shape[1] or y + size > img.shape[0]:
+                continue
+            for i in range(self.batch_size):
+                data = img[y:y+size, x:x+size]
+                data = scipy.misc.imresize(data, [self.sample_size, self.sample_size])
+                data = data/127.5 - 1
+                dataB = gtImg[x:x+size, y:y+size]
+                dataB = scipy.misc.imresize(dataB, [self.sample_size, self.sample_size])
+                dataB = dataB/127.5 - 1
+                img_A = data
+                img_B = dataB
+                batch.append(np.dstack((img_A, img_B)))
+            batch_images = np.array(batch).astype(np.float32)
+            realD = fakeD = bothD = errD = ""
+            for i in range(len(self.d_loss)):
+                filename = 'train_%d_%d_0_0_%d' % (x, y, size)
+                result = self.d_loss[i].eval({self.input_img: batch_images})
+                loss[i].append([result, filename])
+                errD += "{:.4f},".format(result)
+                result = self.d_loss_real[i].eval({self.input_img: batch_images})
+                realLoss[i].append([result, filename])
+                realD += "{:.4f},".format(result)
+                result = self.d_loss_fake[i].eval({self.input_img: batch_images})
+                fakeLoss[i].append([result, filename])
+                fakeD += "{:.4f},".format(result)
+                result = self.d_loss_both[i].eval({self.input_img: batch_images})
+                bothLoss[i].append([result, filename])
+                bothD += "{:.4f},".format(result)
+            print("x = %04d y = %04d d_loss: %s real_loss: %s fake_loss: %s both_loss: %s" 
+                    % (x, y, errD, realD, fakeD, bothD))
+            errLog.write(str(x) + ',' + str(y) + ',' + errD + realD + fakeD + bothD[:-1] + '\n')
+        errLog.close()
+        evaList = []
+        eva = Evaluator(realLoss[0], 'd_real_1', '', '', 128)
+        evaList.append(eva)
+        eva = Evaluator(fakeLoss[0], 'd_fake_1', '', '', 128)
+        evaList.append(eva)
+        eva = Evaluator(bothLoss[0], 'd_both_1', '', '', 128)
+        evaList.append(eva)
+        for eva in evaList:
+            eva.testRocCurve(True)
+            eva.drawRange(0.1, True)
