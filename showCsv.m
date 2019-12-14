@@ -1,16 +1,25 @@
-
-moduleList = ["bhatt_hist", "chi_hist", "corr_hist", "fid", "hell_hist", "inter_hist", "psnr", "ssim"];
+unused = [];
+moduleList = ["fid", "psnr", "ssim", "d_real_1", "d_both_1", "d_fake_1"];
 
 for v = moduleList
     showROC(v);
 end
 
+error = readtable('cal_error.csv');
+a = table2array(error);
+d_both_1_error = a(:,12);
+d_fake_1_error = a(:, 9);
+d_real_1_error = a(:, 6);
+disp(['d_both_1 std=', num2str(std(d_both_1_error))]);
+disp(['d_fake_1 std=', num2str(std(d_fake_1_error))]);
+disp(['d_real_1 std=', num2str(std(d_real_1_error))]);
+
 function showROC(module)
     filename = "csv/" + module + "_ROC_curve.csv";
     table = readtable(filename);
     a = table2array(table);
-    y = a(:,1);
-    x = a(:,2);
+    x = a(:,1);
+    y = a(:,2);
 
     figure1 = figure;
     axes1 = axes('Parent',figure1);
