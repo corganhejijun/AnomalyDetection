@@ -10,12 +10,18 @@ a = table2array(error);
 d_both_1_error = a(:,12);
 d_fake_1_error = a(:, 9);
 d_real_1_error = a(:, 6);
-disp(['d_both_1 std=', num2str(std(d_both_1_error))]);
-disp(['d_fake_1 std=', num2str(std(d_fake_1_error))]);
-disp(['d_real_1 std=', num2str(std(d_real_1_error))]);
+value = std(d_both_1_error);
+normal = getValue(value);
+disp(['d_both_1 std=', num2str(value), ' ', normal]);
+value = std(d_fake_1_error);
+normal = getValue(value);
+disp(['d_fake_1 std=', num2str(value), ' ', normal]);
+value = std(d_real_1_error);
+normal = getValue(value);
+disp(['d_real_1 std=', num2str(value), ' ', normal]);
 
 function showROC(module)
-    filename = "csv/" + module + "_ROC_curve.csv";
+    filename = "test_csv/" + module + "_ROC_curve.csv";
     table = readtable(filename);
     a = table2array(table);
     x = a(:,1);
@@ -35,4 +41,14 @@ function showROC(module)
     ylim(axes1,[0 1]);
 
     box(axes1,'on');
+end
+
+function normal = getValue(value)
+    normal = 'normal';
+    if (value < 0)
+        disp('d_both_1 std value < 0 error');
+    end
+    if (value > 0.0001)
+        normal = 'abnormal';
+    end
 end
